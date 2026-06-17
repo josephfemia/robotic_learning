@@ -9,8 +9,9 @@
 ## 1. Purpose & scope
 
 Migrate the existing single-file study site `robot-learning-companion.html`
-(3,430 lines; 14 lecture sections + Start/Primer/Review; 29 interactive
-widgets) into a modern **Vite + Vue 3 + Tailwind** project that mirrors the
+(3,430 lines; **12 lectures (L1–L12) plus Start, Primer, and Review** — 14
+`data-go` nav entries; 29 interactive widgets) into a modern
+**Vite + Vue 3 + Tailwind** project that mirrors the
 sibling project `../jepa_learning/` (Vite + Tailwind + `launch.sh` + vitest +
 GitHub-Pages workflow), but using **Vue** instead of React.
 
@@ -106,8 +107,10 @@ section visibility is reactive state.
 ### 3.2 Sections (`src/sections/*`)
 One SFC per section: `Start`, `Primer`, `L1`…`L12`, `Review`. Prose is rendered
 from structured `data/` where it's clean to do so; dense mathematical prose may
-live in the section template directly. **Hard rule:** rendered visible text
-(post-KaTeX) is character-identical to the original (enforced in §5).
+live in the section template directly. The data-vs-template split is purely an
+implementation convenience and does **not** relax the gate. **Hard rule:**
+rendered visible text (post-KaTeX) is character-identical to the original,
+whether it originates from `data/` or a template (enforced in §5).
 
 ### 3.3 Widgets (`src/widgets/*.vue`, 29 total)
 Reactive Vue components. Controls (`slider`, `btn`, `legend`) become Vue-driven,
@@ -168,8 +171,10 @@ tolerated.
    against the original algorithm (e.g. deadly-triad diverges only at 3/3;
    gridworld value-iteration sweep values; GAE/PPO-clip curves).
 4. **Structural inventory.** Assert counts/identifiers match the original:
-   14 lectures, 29 widget IDs present, every quiz `data-correct`/`.opt[data-k]`,
-   xref targets, `$$` delimiter balance, `\(`==`\)`.
+   **12 lectures (L1–L12) + Start, Primer, Review** (14 `data-go` nav entries),
+   all 29 widget IDs present (note `mctd` and `triad` are **distinct** widgets —
+   do not dedupe), every quiz `data-correct`/`.opt[data-k]`, xref targets,
+   `$$` delimiter balance, `\(`==`\)`.
 
 ### Sign-off artifact
 Each section/widget records a pass/justified-diff entry. Genuine original bugs
@@ -193,8 +198,8 @@ faithfully** in the port, never fixed here.
 
 The migration is **done** only when all hold:
 1. `launch.sh` boots the dev server; site is fully navigable.
-2. All 14 lectures + Start/Primer/Review render; all 29 widgets present and
-   interactive with behavior matching the original.
+2. All 12 lectures (L1–L12) + Start/Primer/Review render; all 29 widgets present
+   and interactive with behavior matching the original.
 3. **Drift harness passes** on every section and widget: content
    character-identical, visuals at near-zero pixel tolerance (manual sign-off),
    numerics pinned, structural inventory matches.
