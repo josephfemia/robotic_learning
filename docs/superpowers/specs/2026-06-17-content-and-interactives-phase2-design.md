@@ -31,6 +31,14 @@ them), accessibility is preserved, and the build stays green.
 | Audience | A strong-ML / strong-math / actuarial learner, weaker on robotics + RL. Finance/actuarial "bridges" are a valued recurring feature (toggleable). |
 | Review method | Multi-perspective adversarial review via subagents (entry-level lens + senior-researcher lens), producing a tracked backlog before edits. |
 
+### Which original hard-constraints still bind
+The brief's §5 "single self-contained HTML file" constraint is **superseded** by
+Phase 1's Vite/Vue/Tailwind architecture (build step + bundle are now intended).
+Still binding in Phase 2: **persistence via the `window.storage` shim** (no
+`localStorage`/`sessionStorage`); **widget SVG/Canvas text stays Unicode**
+(γ, μ, σ²) while **prose math stays LaTeX/KaTeX**; numeric widget cores must stay
+correct (now enforced by vitest, not manual `node --check`).
+
 ---
 
 ## 2. Workstreams
@@ -48,6 +56,11 @@ most widgets snap between states):
 - **SVG "write-on"** via `stroke-dasharray`/`stroke-dashoffset`;
 - **focus-pulse** highlight to direct attention;
 - a `prefers-reduced-motion` path that degrades gracefully (instant states).
+
+**Retrofit scope:** the toolkit itself and a `prefers-reduced-motion` path are
+*committed*. Retrofitting it across all 29 widgets is **best-effort, one widget at
+a time** (priority to the highest-traffic / most-motion-relevant widgets);
+full-29 coverage is a goal, not a hard acceptance gate (see §4).
 
 ### B. Content review rounds (tasks 5, 6, 7)
 Three passes, each yielding a backlog:
@@ -68,8 +81,10 @@ Prioritized new widgets, each with a pure numeric core + vitest test:
    missing visual).
 2. **Derive-it-yourself Bellman widget (Primer B)** — replace the one place that
    "tells rather than builds."
-3. **Softmax/temperature mini-primer** (shared, supports several widgets).
-4. **Dynamics visual** (inertia/Coriolis) complementing `arm`.
+3. **Softmax/temperature mini-primer** — home: **Primer Part B** (RL fundamentals),
+   linked via xref from widgets that use it (`bandit`, `pg`, `saycan`, etc.).
+4. **Dynamics visual** (inertia/Coriolis) — home: **Primer Part A**, beside the
+   kinematics-only `arm` widget it complements.
    *Additional candidates triaged from the review backlog as capacity allows.*
 
 ### D. Pedagogy pass (tasks 9, 10)
@@ -113,8 +128,11 @@ The "no-regressions" guardrail and quality bar:
 2. **Factual/math correctness:** senior-researcher subagent re-reviews changed
    prose; no introduced errors. Recency-sensitive claims (model names, arXiv IDs)
    re-verified if touched.
-3. **Links:** zero known 404s among course-logistics links; each checked link
-   recorded with its HTTP status.
+3. **Links:** every course-logistics link **fetched and content-confirmed** —
+   not merely HTTP 200 (the brief's concern is 200-but-wrong-content links, e.g.
+   the constructed GitHub repo / homework paths). Each link recorded with status
+   and a note that its destination is the intended resource; replace or remove any
+   that 404 or point to the wrong content.
 4. **Pedagogy bar:** each interactive satisfies the 3b1b checklist
    (question → manipulation → visible consequence → takeaway); reduced-motion
    path works.
