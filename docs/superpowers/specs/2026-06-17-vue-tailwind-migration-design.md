@@ -99,8 +99,9 @@ robotic_learning/
 
 ### 3.1 App shell (`App.vue`)
 Recreates the fixed dark sidebar (`--sidebar-w:300px`) + scrollable content
-column, flat section nav, progress bar ("Policy improvement N/12"), bridge
-toggle, prev/next pagers (`data-go` equivalent). Single source of truth for the
+column, flat section nav (15 buttons; `data-target` equivalent), progress bar
+("Policy improvement N/12"), bridge toggle, prev/next pagers (14 targets;
+`data-go` equivalent). Single source of truth for the
 active section. No router needed (original is a single-page section-toggler);
 section visibility is reactive state.
 
@@ -171,10 +172,11 @@ tolerated.
    against the original algorithm (e.g. deadly-triad diverges only at 3/3;
    gridworld value-iteration sweep values; GAE/PPO-clip curves).
 4. **Structural inventory.** Assert counts/identifiers match the original:
-   **12 lectures (L1–L12) + Start, Primer, Review** (14 `data-go` nav entries),
-   all 29 widget IDs present (note `mctd` and `triad` are **distinct** widgets —
-   do not dedupe), every quiz `data-correct`/`.opt[data-k]`, xref targets,
-   `$$` delimiter balance, `\(`==`\)`.
+   **12 lectures (L1–L12) + Start, Primer, Review** = 15 sidebar nav buttons
+   (`data-target`), with 14 prev/next pager targets (`data-go`; no pager links to
+   Review). All 29 widget IDs present (note `mctd` and `triad` are **distinct**
+   widgets — do not dedupe), **40 quiz `data-correct` answers** with matching
+   `.opt[data-k]` options, xref targets, `$$` delimiter balance, `\(`==`\)`.
 
 ### Sign-off artifact
 Each section/widget records a pass/justified-diff entry. Genuine original bugs
