@@ -10,7 +10,7 @@
 
   <div class="app">
     <Sidebar
-      :activeId="activeId"
+      :activeId="navActiveId"
       :mobileOpen="mobileOpen"
       @navigate="show"
     />
@@ -25,7 +25,7 @@
           v-for="item in ALL_NAV_ITEMS"
           :key="item.id"
           class="lecture"
-          :class="{ visible: activeId === item.id }"
+          :class="{ visible: visibleId === item.id }"
           :id="item.id"
         >
           <div class="lecture-head">
@@ -45,17 +45,24 @@ import TopBar from './components/TopBar.vue';
 import Sidebar from './components/Sidebar.vue';
 import { ALL_NAV_ITEMS, TITLES } from './data/nav.js';
 
-// Reactive state
-const activeId = ref('start');
+// Reactive state.
+// Faithful to the original: the start *content* is statically visible on load,
+// but NO nav button is highlighted until the user navigates. So we decouple the
+// visible section (defaults to 'start') from the nav-active highlight (empty on
+// load). See DRIFT_FIXME.md — the original never initializes the active nav state.
+const visibleId = ref('start');
+const navActiveId = ref('');
 const mobileOpen = ref(false);
 
-// Derived topbar label — matches TITLES[id] lookup from original show()
-const whereLabel = computed(() => TITLES[activeId.value] || activeId.value);
+// Derived topbar label — original's #whereLabel is statically "Start here" on load
+// and set to TITLES[id] on navigation; both map to the visible section.
+const whereLabel = computed(() => TITLES[visibleId.value] || visibleId.value);
 
 // Matches show(id) from original IIFE (lines ~2261–2273):
-// hides all .lecture, shows target, toggles .active on nav btn, sets whereLabel, closes drawer, scrolls top
+// shows target section, toggles .active on its nav btn, sets whereLabel, closes drawer, scrolls top
 function show(id) {
-  activeId.value = id;
+  visibleId.value = id;
+  navActiveId.value = id;
   closeDrawer();
   window.scrollTo(0, 0);
 }

@@ -25,7 +25,7 @@
           :class="{ active: activeId === item.id, 'is-done': completed.has(item.id) }"
           @click="$emit('navigate', item.id)"
         >
-          <span class="idx">{{ item.idx }}</span>{{ item.label }}<span class="done-mark">✓</span>
+<span class="idx">{{ item.idx }}</span>{{ item.label }}<span v-if="item.id !== 'review'" class="done-mark">✓</span>
         </button>
       </template>
     </nav>
