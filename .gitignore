@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+
+# Vite cache
+.vite/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Playwright MCP artifacts (snapshots, console logs, scan screenshots)
+.playwright-mcp/
+hero-*.png
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.local
