@@ -132,7 +132,7 @@ for episode in range(50_000):
       </ul>
     </div>
 
-    <CompleteBar id="l4" prev="l3" next="l5" @navigate="$emit('navigate', $event)" />
+    <CompleteBar id="l4" prev="l3" next="l5" prevLabel="← L03" nextLabel="NEXT: L05 →" @navigate="$emit('navigate', $event)" />
   </section>
 </template>
 

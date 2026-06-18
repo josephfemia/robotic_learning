@@ -59,12 +59,20 @@ import { ALL_NAV_ITEMS, TITLES } from './data/nav.js';
 // Add entries here as sections are ported. The key is the nav id; the value is
 // the imported component. Unregistered ids fall through to the stub template.
 import StartSection from './sections/StartSection.vue';
+import PrimerSection from './sections/PrimerSection.vue';
+import L1Section from './sections/L1Section.vue';
+import L2Section from './sections/L2Section.vue';
+import L3Section from './sections/L3Section.vue';
+import L4Section from './sections/L4Section.vue';
 
 const sectionRegistry = {
   start: StartSection,
-  // primer: PrimerSection,   ← added in a later task
-  // l1: L1Section,           ← added in a later task
-  // …
+  primer: PrimerSection,
+  l1: L1Section,
+  l2: L2Section,
+  l3: L3Section,
+  l4: L4Section,
+  // l5..l12, review added as ported
 };
 
 // ── Reactive state ────────────────────────────────────────────────────────────

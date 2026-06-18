@@ -111,7 +111,7 @@
       </ul>
     </div>
 
-    <CompleteBar id="l3" prev="l2" next="l4" @navigate="$emit('navigate', $event)" />
+    <CompleteBar id="l3" prev="l2" next="l4" prevLabel="← L02" nextLabel="NEXT: L04 →" @navigate="$emit('navigate', $event)" />
   </section>
 </template>
 
