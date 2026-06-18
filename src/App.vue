@@ -18,34 +18,56 @@
     <main class="main">
       <div class="content">
         <!--
-          TASK 6 STUB SECTIONS — replace with real section components in Task 6.
-          Each section uses .lecture + .visible toggle to prove nav show/hide + fadein animation.
+          Section registry: ported sections render their real component;
+          unported sections render a stub. All sections stay in the DOM —
+          visibility is controlled by the .visible class (mirrors original
+          .lecture{display:none} / .lecture.visible{display:block}).
         -->
-        <section
-          v-for="item in ALL_NAV_ITEMS"
-          :key="item.id"
-          class="lecture"
-          :class="{ visible: visibleId === item.id }"
-          :id="item.id"
-        >
-          <div class="lecture-head">
-            <h2>{{ TITLES[item.id] || item.label }}</h2>
-          </div>
-          <p>Section content arrives in Task 6.</p>
-        </section>
-        <!-- END TASK 6 STUB SECTIONS -->
+        <template v-for="item in ALL_NAV_ITEMS" :key="item.id">
+          <!-- Ported section: use the real component -->
+          <component
+            v-if="sectionRegistry[item.id]"
+            :is="sectionRegistry[item.id]"
+            :class="{ visible: visibleId === item.id }"
+            @navigate="show"
+          />
+          <!-- Stub section: placeholder until ported -->
+          <section
+            v-else
+            class="lecture"
+            :class="{ visible: visibleId === item.id }"
+            :id="item.id"
+          >
+            <div class="lecture-head">
+              <h2>{{ TITLES[item.id] || item.label }}</h2>
+            </div>
+            <p>Section content arrives in a later task.</p>
+          </section>
+        </template>
       </div>
     </main>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import TopBar from './components/TopBar.vue';
 import Sidebar from './components/Sidebar.vue';
 import { ALL_NAV_ITEMS, TITLES } from './data/nav.js';
 
-// Reactive state.
+// ── Section registry ─────────────────────────────────────────────────────────
+// Add entries here as sections are ported. The key is the nav id; the value is
+// the imported component. Unregistered ids fall through to the stub template.
+import StartSection from './sections/StartSection.vue';
+
+const sectionRegistry = {
+  start: StartSection,
+  // primer: PrimerSection,   ← added in a later task
+  // l1: L1Section,           ← added in a later task
+  // …
+};
+
+// ── Reactive state ────────────────────────────────────────────────────────────
 // Faithful to the original: the start *content* is statically visible on load,
 // but NO nav button is highlighted until the user navigates. So we decouple the
 // visible section (defaults to 'start') from the nav-active highlight (empty on
@@ -70,4 +92,24 @@ function show(id) {
 function closeDrawer() {
   mobileOpen.value = false;
 }
+
+// ── Global data-go click delegation ──────────────────────────────────────────
+// Mirrors the original's document-level click handler for [data-go] elements
+// (lines ~2352–2353). Handles xref anchors inserted by applyXref, plus any
+// other [data-go] elements in the DOM.
+function handleDataGo(ev) {
+  const target = ev.target.closest('[data-go]');
+  if (target) {
+    ev.preventDefault();
+    show(target.getAttribute('data-go'));
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleDataGo);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleDataGo);
+});
 </script>
