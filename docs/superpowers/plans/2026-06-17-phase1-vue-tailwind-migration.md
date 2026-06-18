@@ -95,7 +95,7 @@ robotic_learning/
 
 > The original grades via event delegation and the Review deck **clones live quiz DOM**. Idiomatic Vue: questions live in `data/quizzes.js` (single source); sections render their quiz from it; the Review deck renders from the same data — no DOM cloning. Behavior (grade-on-click, `.right/.wrong`, explanation reveal, counter `Q1…`, score, shuffle, group-by-lecture) reproduced exactly.
 
-- [ ] **Step 1:** `quizzes.js` — extract **all 40** questions from the original (each `.q[data-correct]` with its `.opt[data-k]` set and `.expl`), tagged by source lecture. Inventory test: assert 40 questions, each with a valid `data-correct` key present among its options.
+- [ ] **Step 1:** `quizzes.js` — extract **all 38** questions from the original (each `.q[data-correct]` with its `.opt[data-k]` set and `.expl`), tagged by source lecture. NOTE: a raw `grep -c data-correct` on the original returns 40, but **2 of those are JavaScript references** (lines 2341, 3383) — there are exactly **38** static `class="q" data-correct` question blocks. Inventory test: assert 38 questions, each with a valid `data-correct` key present among its options.
 - [ ] **Step 2:** `Question.vue` — reactive `answered` state; on option click set answered, apply `.right` to the correct option and `.wrong` to the chosen-if-wrong, reveal `.expl`. Markup/classes identical to original (`.q`, `.q-text` with `Q` counter via CSS `counter-reset`, `.opt .ok`).
 - [ ] **Step 3:** `Quiz.vue` — renders a list of `Question` for a lecture (`counter-reset:q`).
 - [ ] **Step 4:** `ReviewDeck.vue` — renders all questions with `reviewShuffle`/`reviewGroup` buttons (`.off` toggling), `review-src` group labels and `review-tag` chips, and live `reviewScore` "Score: R / A (of N)". Shuffle = Fisher–Yates (seeded acceptably; randomness is fine), group = by lecture. Replicates original utility-script behavior.
@@ -170,7 +170,7 @@ robotic_learning/
 
 **Files:** `DRIFT_FIXME.md`, `tools/drift/` (final run report).
 
-- [ ] **Step 1: Inventory** — run `inventory.mjs` against the built app; assert 15 nav buttons, 14 `data-go` targets, 29 `lab-*` ids (incl. distinct `mctd`/`triad`), 40 quiz `data-correct`, `$$` balanced, `\(`==`\)`. All must match the original.
+- [ ] **Step 1: Inventory** — run `inventory.mjs` against the built app; assert 15 nav buttons, 14 `data-go` targets, 29 `lab-*` ids (incl. distinct `mctd`/`triad`), **38 quiz questions** (`.q[data-correct]` blocks — NOT 40; raw `grep data-correct` returns 40 due to 2 JS refs), `$$` balanced, `\(`==`\)`. All must match the original.
 - [ ] **Step 2: Full content diff** — run `content-diff.mjs` across all 15 sections; assert character-identical. Any remaining diff is a defect or a logged `DRIFT_FIXME` justification.
 - [ ] **Step 3: Full visual sweep** — `snapshot.mjs` every section + every widget initial state at desktop + mobile vs original; harsh-critic review; resolve or justify each delta in writing.
 - [ ] **Step 4: Tests + build** — `npm test` green; `npm run build` clean; `./launch.sh` serves a fully navigable site.
