@@ -64,6 +64,11 @@ import L1Section from './sections/L1Section.vue';
 import L2Section from './sections/L2Section.vue';
 import L3Section from './sections/L3Section.vue';
 import L4Section from './sections/L4Section.vue';
+import L5Section from './sections/L5Section.vue';
+import L6Section from './sections/L6Section.vue';
+import L7Section from './sections/L7Section.vue';
+import L8Section from './sections/L8Section.vue';
+import L9Section from './sections/L9Section.vue';
 
 const sectionRegistry = {
   start: StartSection,
@@ -72,7 +77,12 @@ const sectionRegistry = {
   l2: L2Section,
   l3: L3Section,
   l4: L4Section,
-  // l5..l12, review added as ported
+  l5: L5Section,
+  l6: L6Section,
+  l7: L7Section,
+  l8: L8Section,
+  l9: L9Section,
+  // l10..l12, review added as ported
 };
 
 // ── Reactive state ────────────────────────────────────────────────────────────
