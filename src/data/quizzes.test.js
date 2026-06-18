@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import quizzes, { SOURCE_LABELS } from './quizzes.js';
+import quizzes, { SOURCE_LABELS, REVIEW_ORDER } from './quizzes.js';
 
 const VALID_SRC_IDS = ['primer', 'l1', 'l2', 'l3', 'l4', 'l5', 'l6', 'l7', 'l8', 'l9', 'l10', 'l11', 'l12'];
 
@@ -78,5 +78,12 @@ describe('quizzes data', () => {
     for (const id of VALID_SRC_IDS) {
       expect(SOURCE_LABELS[id], `SOURCE_LABELS missing key "${id}"`).toBeTruthy();
     }
+  });
+
+  it('REVIEW_ORDER contains all 13 src ids in the correct lecture order', () => {
+    expect(REVIEW_ORDER).toEqual([
+      'primer', 'l1', 'l2', 'l3', 'l4', 'l5', 'l6',
+      'l7', 'l8', 'l9', 'l10', 'l11', 'l12',
+    ]);
   });
 });
