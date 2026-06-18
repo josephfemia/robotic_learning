@@ -78,11 +78,7 @@
 
     <h4>Feel the discount before you trust it</h4>
     <p>Before moving on, build intuition for the one free parameter in all of RL. The return weights a reward \(k\) steps away by \(\gamma^k\). Drag \(\gamma\) below and watch two things at once: how fast the future fades, and the total weight \(\sum_k \gamma^k = 1/(1-\gamma)\) — which doubles as an <em>effective planning horizon</em>. At \(\gamma=0.99\) the agent effectively looks ~100 steps ahead; at \(\gamma=0.9\), only ~10. This single number silently sets how far-sighted every algorithm in the course is — and it's the same \(v = 1/(1+i)\) you discount cash flows with.</p>
-    <Lab
-      id="disc"
-      title="How the discount factor shapes the horizon"
-      :note="`Each orange bar is the weight \\(\\gamma^k\\) on the reward \\(k\\) steps ahead. The dashed cyan line marks the effective horizon \\(1/(1-\\gamma)\\); the orange number is the total discounted weight of an infinite future.`"
-    />
+    <DiscWidget />
 
     <h3><span class="knum">PART C</span>The actuarial Rosetta stone</h3>
     <p>Here's the part nobody will tell you in lecture: <strong>you have been doing dynamic programming on Markov processes with discounting your entire actuarial career.</strong> The vocabulary differs; the mathematics is the same. The clearest example — compare the actuarial recursion for a whole-life annuity-due with the Bellman equation:</p>
@@ -123,6 +119,7 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
 import Lab from '../components/Lab.vue';
+import DiscWidget from '../widgets/DiscWidget.vue';
 import Quiz from '../components/Quiz.vue';
 import CompleteBar from '../components/CompleteBar.vue';
 import { renderMath } from '../composables/useKaTeX.js';
