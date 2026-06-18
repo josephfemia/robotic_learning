@@ -29,11 +29,7 @@
 
     <h4>Place the methods in the triangle</h4>
     <p>The three worldviews are corners of a space, and real systems are blends. Tap a method below to see where it sits — how much of its DNA is "scale general methods" (Sutton), "predict and plan with a world model" (LeCun), or "reactive embodied competence" (Brooks) — and read why. There's no right answer here; the point is that placing a paper is most of understanding it.</p>
-    <Lab
-      id="worldview"
-      title="The three worldviews as a map"
-      :note="`Each method is a weighted point inside the Sutton–LeCun–Brooks triangle. Notice almost nothing sits in a pure corner — the live disagreements are about <em>mixtures</em>. Where you'd place your own project is a genuinely useful thing to know.`"
-    />
+    <WorldviewWidget />
 
     <h3><span class="knum">11.2</span>The open-problem ledger</h3>
     <p><strong>Data.</strong> Still the binding constraint. The contenders: teleoperation farms (high quality, linear cost), simulation (infinite but gapped — L5), human video (infinite, embodiment-mismatched — L7/L8's masking and video-model bets), autonomous experience (the π*0.6 road — RL's return at scale), and synthetic data from world models. Nobody knows the winning portfolio; everyone agrees it's a portfolio.</p>
@@ -71,8 +67,8 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
-import Lab from '../components/Lab.vue';
 import Quiz from '../components/Quiz.vue';
+import WorldviewWidget from '../widgets/WorldviewWidget.vue';
 import CompleteBar from '../components/CompleteBar.vue';
 import { renderMath } from '../composables/useKaTeX.js';
 import { applyXref } from '../composables/useXref.js';

@@ -49,11 +49,7 @@
     </table></div>
     <h4>Pick a paradigm by what supervision you have</h4>
     <p>The table above is really a decision procedure. Robot learning isn't a menu you pick from by taste — the <em>kind of supervision signal you can get</em> forces the choice. Answer the questions below and watch the tree route you to the paradigm (and the lecture) that fits. The point isn't the answer; it's internalizing the questions, because every real project starts here.</p>
-    <Lab
-      id="paradigm"
-      title="Which paradigm? Follow the supervision signal"
-      :note="`Tap the answers. The highlighted leaf is the paradigm the field would reach for — and the lecture that teaches it. Notice how often the answer is &quot;it depends on the data you can afford,&quot; which is the course's central economic fact in miniature.`"
-    />
+    <ParadigmWidget />
 
     <p>And the historical arc you should keep in your head — the field's "three eras" (you'll hear the guest lecturer Ted Xiao frame it this way in week 7): <strong>(1)</strong> task-specific learned components inside classical stacks, <strong>(2)</strong> end-to-end policies per robot/task family trained by IL or RL, <strong>(3)</strong> the current bet — <em>robot foundation models</em>: one large model, many robots, many tasks, fueled by internet-scale pretraining. The course's title is literally this arc.</p>
 
@@ -87,8 +83,8 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
-import Lab from '../components/Lab.vue';
 import Quiz from '../components/Quiz.vue';
+import ParadigmWidget from '../widgets/ParadigmWidget.vue';
 import CompleteBar from '../components/CompleteBar.vue';
 import { renderMath } from '../composables/useKaTeX.js';
 import { applyXref } from '../composables/useXref.js';

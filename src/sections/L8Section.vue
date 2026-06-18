@@ -38,11 +38,7 @@
 
     <h4>How far can you trust a dream?</h4>
     <p>A learned world model is a compression of reality, and small per-step errors compound the further you imagine. The lab plots that divergence between the dreamed trajectory and what would really happen, as a function of how many steps you roll out — and contrasts two modeling choices. A pixel-space model accumulates error fast (predicting every texture is hard and the mistakes feed forward); a compact <em>latent</em> model drifts more slowly. The shaded zone is where the dream is still trustworthy.</p>
-    <Lab
-      id="wm"
-      title="Model error compounds over an imagined rollout"
-      :note="`This curve is why Dreamer imagines in <em>short</em> bursts from real states and in a <em>compact latent</em> space rather than pixels (§8.2–8.3), and why §8.5's error-containment tricks exist at all. Plan or train inside the dream only as far as the model stays honest.`"
-    />
+    <WmWidget />
 
     <h3><span class="knum">8.4</span>Video generation as a world model — and as a policy</h3>
     <p>A text-to-video model is, functionally, a world model with a language interface: it encodes how scenes evolve. <strong>UniPi</strong> operationalizes this: given an instruction and a current image, <em>generate a video of the task being done</em>, then recover actions with a learned <strong>inverse dynamics model</strong> (state, next-state → action; cheap to train, it's supervised). The plan is literally a movie; control is captioning the movie with motor commands. Why this is strategically seductive: video models pretrain on internet-scale footage — knowledge of how doors, liquids, and hands behave — none of which a robot had to collect. The 2026 frontier (DreamZero, below) fuses the two roles: one <em>world-action model</em> that predicts video and actions jointly, acting zero-shot. Open questions are real: video is slow to generate (latency), photorealism ≠ physical correctness, and hallucinated dynamics are failure modes with torque behind them.</p>
@@ -85,7 +81,7 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
-import Lab from '../components/Lab.vue';
+import WmWidget from '../widgets/WmWidget.vue';
 import Quiz from '../components/Quiz.vue';
 import CompleteBar from '../components/CompleteBar.vue';
 import { renderMath } from '../composables/useKaTeX.js';

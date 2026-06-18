@@ -37,11 +37,7 @@
 
     <h4>Why pooling other people's robots helps yours</h4>
     <p>The OXE result is counterintuitive enough to deserve a picture: training on data from <em>different</em> robot bodies — different arms, grippers, cameras — improves performance on the one you care about, versus training on its data alone. Add embodiments to the pool below and watch the target robot's success rise as shared structure (objects, physics, task semantics) transfers, even though no two robots are identical.</p>
-    <Lab
-      id="xembod"
-      title="Cross-embodiment transfer: pooled beats solo"
-      :note="`The orange bar is the target robot trained on its own data only; the cyan bar adds co-training on other embodiments. Diminishing but real returns — and the curve only bends up because the bodies share <em>something</em> (the world). <span class=&quot;notice&quot;>Honesty note: real OXE transfer is positive <em>on average</em>, not universally — some embodiment pairs show <em>negative</em> transfer (a very different robot can hurt), and low &quot;shared structure&quot; here mimics that by flattening the gain. Pooling is a bet that usually pays, not a law.</span>`"
-    />
+    <XembodWidget />
 
     <h3><span class="knum">9.5</span>The π line: flow matching, open worlds, and learning from experience</h3>
     <p>Physical Intelligence's series is the current reference point, and each step answers a question this course has equipped you to ask. <strong>π0:</strong> how do you get VLM semantics <em>and</em> dexterous 50 Hz control? A PaliGemma VLM backbone with a separate <strong>flow-matching action expert</strong> (L6's §6.4, verbatim) generating continuous action chunks — trained over many embodiments, post-trained per application (laundry folding, table bussing). <strong><a href="https://arxiv.org/abs/2504.16054" target="_blank" rel="noopener">π0.5</a>:</strong> does it generalize <em>out of the lab</em>? Co-training on heterogeneous data (multi-robot, web, verbal instructions) plus a hierarchical scheme — the model first infers a high-level subtask in language, then decodes actions — yielding cleaning behavior in entirely unseen homes. <strong>π*0.6 (the week's paper):</strong> can a VLA <em>improve from its own experience</em> instead of plateauing at demonstration quality — Lecture 3's ceiling, at foundation scale? The RECAP recipe: train a value function on mixed-quality experience, condition the policy on advantage (good/bad framing of its own past — note the Decision-Transformer DNA), add corrections; result: roughly doubled throughput and halved failures on long-horizon real tasks (espresso making, box folding), with RL-from-experience as the engine. The arc of the whole course — IL's ceiling, RL's improvement, sequence-model conditioning — converging in one production system.</p>
@@ -89,7 +85,7 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
-import Lab from '../components/Lab.vue';
+import XembodWidget from '../widgets/XembodWidget.vue';
 import Quiz from '../components/Quiz.vue';
 import CompleteBar from '../components/CompleteBar.vue';
 import { renderMath } from '../composables/useKaTeX.js';
