@@ -8,7 +8,7 @@
     {"id": 4, "subject": "Task 4: Data-driven quiz system + Review deck", "status": "completed", "blockedBy": [1]},
     {"id": 5, "subject": "Task 5: Widget infrastructure (rllab port, useAnimate, Lab shell, logic harness, drift tools)", "status": "completed", "blockedBy": [1]},
     {"id": 6, "subject": "Task 6: Port content sections x15 (per-section recipe)", "status": "completed", "blockedBy": [3, 4, 5]},
-    {"id": 7, "subject": "Task 7: Port widgets x29 (per-widget recipe, numerics pinned)", "status": "pending", "blockedBy": [5, 6]},
+    {"id": 7, "subject": "Task 7: Port widgets x29 (per-widget recipe, numerics pinned)", "status": "completed", "blockedBy": [5, 6]},
     {"id": 8, "subject": "Task 8: Full drift sweep + acceptance + STOP", "status": "pending", "blockedBy": [6, 7]}
   ],
   "lastUpdated": "2026-06-17"

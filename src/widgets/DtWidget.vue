@@ -14,7 +14,7 @@ import R from './rllab.js';
 import { achievedReturn, MAX_DATA } from '../logic/decisionTransformer.js';
 
 const note =
-  'This is the precise sense in which outcome-conditioned imitation differs from RL: it interpolates within demonstrated returns but cannot extrapolate or stitch beyond them. It\'s the visual form of the “Watch out for” note above — and why DT shines for stability and scaling, yet cedes ground to value-based methods when trajectory stitching matters.';
+  'This is the precise sense in which outcome-conditioned imitation differs from RL: it interpolates within demonstrated returns but cannot extrapolate or stitch beyond them. It\'s the visual form of the "Watch out for" note above — and why DT shines for stability and scaling, yet cedes ground to value-based methods when trajectory stitching matters.';
 
 const lab = ref(null);
 

@@ -13,7 +13,7 @@ import Lab from '../components/Lab.vue';
 import R from './rllab.js';
 
 const note =
-  `Tap the answers. The highlighted leaf is the paradigm the field would reach for — and the lecture that teaches it. Notice how often the answer is “it depends on the data you can afford,” which is the course’s central economic fact in miniature.`;
+  `Tap the answers. The highlighted leaf is the paradigm the field would reach for — and the lecture that teaches it. Notice how often the answer is "it depends on the data you can afford," which is the course's central economic fact in miniature.`;
 
 const lab = ref(null);
 
