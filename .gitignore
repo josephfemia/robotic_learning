@@ -21,3 +21,8 @@ hero-*.png
 .idea/
 .vscode/
 *.local
+
+# drift-harness dumps (diagnostics)
+ref-*.json
+new-*.json
+*-sections*.json
