@@ -29,11 +29,7 @@
 
     <h4>See attention reach across time</h4>
     <p>The claim that "a late token can attend directly to an early one with no decay" is worth seeing as a grid. Below is the attention matrix over a short trajectory: row \(i\) is the token doing the looking, column \(j\) is what it looks at, and brightness is the weight. Turn on the causal mask to grey out the future (each token sees only the past — that's what makes it a next-token predictor), and drag the temperature to watch attention sharpen onto a few tokens or spread evenly. Note there's no diagonal falloff: position 12 can land most of its weight on position 1.</p>
-    <Lab
-      id="attn"
-      title="Attention over a trajectory: no distance decay"
-      :note="`Unlike an RNN's fading memory, attention weight depends on query–key <em>match</em>, not distance — the structural reason transformers handle long-horizon credit and non-Markov observations so well. The causal mask is the only thing that turns this into autoregression.`"
-    />
+    <AttnWidget />
 
     <h3><span class="knum">7.2</span>Decision Transformer: RL as conditional generation</h3>
     <p>The cleanest version of the reframe. Tokenize trajectories as triples — <strong>return-to-go</strong> \(\hat R_t = \sum_{t'\ge t} r_{t'}\), state, action — and train a causal transformer on offline data to predict actions:</p>
@@ -45,11 +41,7 @@
 
     <h4>Conditioning is not optimizing — watch where it breaks</h4>
     <p>Decision Transformer's trick is to prompt a desired return-to-go and let the model generate actions "consistent with being that good." So the natural question: prompt a bigger number, get a better policy? The lab makes the answer concrete. Within the range of returns the dataset actually contains, asking for more delivers more — the green curve tracks the prompt. Push past the best trajectory ever seen and you leave the data's support: the model has nothing to imitate, can't <em>stitch</em> together a better-than-seen path the way dynamic programming would, and degrades.</p>
-    <Lab
-      id="dt"
-      title="Return-conditioned generation: it delivers, until the data runs out"
-      :note="`This is the precise sense in which outcome-conditioned imitation differs from RL: it interpolates within demonstrated returns but cannot extrapolate or stitch beyond them. It's the visual form of the &quot;Watch out for&quot; note above — and why DT shines for stability and scaling, yet cedes ground to value-based methods when trajectory stitching matters.`"
-    />
+    <DtWidget />
 
     <h3><span class="knum">7.3</span>ACT &amp; ALOHA: the transformer recipe for real manipulation</h3>
     <p>The most copied imitation recipe in modern robotics. <strong>ALOHA</strong> is the hardware/data side: a cheap (~$20k) bimanual teleoperation rig — two leader arms you puppeteer, two followers that mirror — yielding smooth 50 Hz demonstrations of genuinely fine tasks (slotting a battery, opening a translucent cup, zip ties). <strong>ACT</strong> (Action Chunking with Transformers) is the policy: a <strong>CVAE</strong> whose encoder compresses the demonstrated action sequence into a latent style variable \(z\) (Lecture 6's tool, absorbing demo multimodality/inconsistency), and whose decoder — a transformer conditioned on multi-camera images, proprioception, and \(z\) — emits a <strong>chunk of ~100 future actions</strong>. Two further design points:</p>
@@ -61,11 +53,7 @@
 
     <h4>The rhythm: predict a chunk, execute a few, re-plan</h4>
     <p>Chunking, receding-horizon execution, and temporal ensembling share one rhythm with MPC (Lecture 2). The model predicts a whole chunk of future actions; you execute only the first few, then re-observe and predict again, and where chunks overlap you average them. Step through the loop below: watch the predicted chunk (faint) get committed a few steps at a time (solid), and toggle ensembling to see the overlapping predictions blend into a smoother path. Shorten the execution stride for more reactivity, lengthen it for more commitment — the bias–variance dial of §7.1.</p>
-    <Lab
-      id="chunk"
-      title="Action chunking &amp; receding-horizon execution"
-      :note="`Re-planning every step (short stride) is maximally reactive but can jitter; committing to a long chunk is smooth but slow to correct. Temporal ensembling averages overlapping chunk predictions to get most of the smoothness <em>and</em> the reactivity — the same MPC rhythm behind Diffusion Policy and π0.`"
-    />
+    <ChunkWidget />
 
     <h3><span class="knum">7.4</span>Humanoid locomotion as next-token prediction</h3>
     <p>The third paper pushes the reframe to its logical end: model raw <em>sensorimotor streams</em> autoregressively — observations and actions interleaved as tokens — and walking emerges as fluent "speech." Two ideas matter beyond the headline. First, <strong>modality-aligned masking</strong> lets the model train on <em>incomplete</em> sequences: human videos and motion capture have observations but no robot actions; mask the action slots, learn from what's there. Suddenly YouTube-scale data becomes (partially) robot-relevant — a preview of L8's video-as-world-model thesis and the field's answer to its data famine. Second, the result transferred <strong>zero-shot to a real humanoid in San Francisco</strong> — trained on 27 hours of mixed-quality data, walking untethered. Autoregression over tokens is not just a benchmark trick; it survives contact with pavement.</p>
@@ -105,7 +93,9 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
-import Lab from '../components/Lab.vue';
+import AttnWidget from '../widgets/AttnWidget.vue';
+import DtWidget from '../widgets/DtWidget.vue';
+import ChunkWidget from '../widgets/ChunkWidget.vue';
 import Quiz from '../components/Quiz.vue';
 import CompleteBar from '../components/CompleteBar.vue';
 import { renderMath } from '../composables/useKaTeX.js';

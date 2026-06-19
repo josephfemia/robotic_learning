@@ -37,17 +37,9 @@
 
     <h4>See the spiral, then see why it's quadratic</h4>
     <p>The \(O(\epsilon T^2)\) bound is the most important inequality in imitation learning, and it's worth feeling in two steps. First, the <em>mechanism</em>: a cloned policy is fine until one small error nudges it off the demonstrated path — and then it's in a state the expert never visited, so there's no one to copy, and it drifts further. Resample the rollouts below and watch a tight bundle fan into a divergent spray as the per-step error \(\epsilon\) grows.</p>
-    <Lab
-      id="drift"
-      title="Distribution shift: trajectories drifting off the demo"
-      :note="`The cyan dashed line is the expert's path. Each orange line is one rollout of the cloned policy: once a small error knocks it off-distribution, there's no correcting signal, so it walks away. Raise \\(\\epsilon\\) and the funnel widens fast.`"
-    />
+    <DriftWidget />
     <p>Second, the <em>scaling</em>: why \(T^2\) and not \(T\)? Because a mistake at step \(t\) doesn't cost one step — it can cost <em>all</em> \(T-t\) remaining steps, since the policy may never recover. Summing that triangular cost across the episode gives \(\sum_t (T-t)\sim T^2\). DAgger relabels the drifted states with expert actions, capping the damage at \(O(\epsilon T)\). Slide \(\epsilon\) and \(T\) and read the gap between the two curves directly.</p>
-    <Lab
-      id="curve"
-      title="Why the error compounds quadratically"
-      :note="`Same per-step error \\(\\epsilon\\), same constant — the only difference is recovery. Behavioral cloning's regret grows like \\(\\epsilon T^2\\) (red); DAgger's like \\(\\epsilon T\\) (green). At horizon \\(T\\), cloning is worse by a factor of \\(T\\) — which is why long-horizon tasks punish naïve BC so severely.`"
-    />
+    <CurveWidget />
 
     <h3><span class="knum">3.3</span>DAgger: fix the distribution, not the model</h3>
     <p><strong>Dataset Aggregation</strong> attacks the mismatch directly: train on the distribution the learner actually induces.</p>
@@ -66,19 +58,11 @@
 
     <h4>The averaging trap, in one picture</h4>
     <p>Here's the multimodality failure with nothing hidden. The demonstrations cluster into two equally valid maneuvers — swerve left, swerve right — with an obstacle dead center. A mean-squared-error policy minimizes average distance to <em>all</em> the data at once, so its single best answer is the average of left and right: straight ahead, into the obstacle. Toggle between the two policy classes and watch where each one actually sends the robot.</p>
-    <Lab
-      id="mean"
-      title="Why regression-to-the-mean crashes the robot"
-      :note="`Two valid modes in the demos (cyan). The MSE policy predicts their mean — a confident steer straight into the obstacle. A generative policy instead samples <em>one</em> mode and commits. This single picture is the entire motivation for Lecture 6: stop predicting one action; model the distribution \\(p(a\\mid o)\\) and sample.`"
-    />
+    <MeanWidget />
 
     <h4>Causal confusion: when more information hurts</h4>
     <p>The other subtle failure is stranger, because it runs against every instinct: giving the policy <em>richer</em> observations can make it <em>worse</em>. The toggle below is the canonical dashcam example. Add the car's own brake-light to the observation and training accuracy jumps to a perfect 100% — the network simply reads "brake-light on → brake," an <em>effect</em> of the expert's action it mistakes for a cause. Then deploy it: there's no expert brake-light to copy, so it never initiates braking. Remove the shortcut and accuracy drops slightly, but the policy is forced to learn the real cause and actually drives.</p>
-    <Lab
-      id="causal"
-      title="The brake-light trap: train accuracy ↑, real driving ↓"
-      :note="`Cloning fits correlations in \\(p(a\\mid o)\\); it has no notion of intervention, so it cannot tell a cause from its effect. The fix isn't more data — it's <em>removing the leaked channel</em> (or breaking the correlation with targeted interventions). This is why richer sensors sometimes need careful observation design, not just bigger networks.`"
-    />
+    <CausalWidget />
 
     <h3><span class="knum">3.5</span>What actually makes visual BC work</h3>
     <p>Modern practice, distilled: (1) <strong>Representations carry you.</strong> Pretrained or self-supervised visual encoders (the Pari et al. paper below shows BYOL features + literal nearest-neighbor lookup of demo actions is a strong policy) — most of the problem is perception. (2) <strong>Inductive bias buys data efficiency.</strong> Transporter Networks pose pick-and-place as "match a region to a placement" with translation-equivariant convolutions — tens of demos instead of thousands, by baking spatial structure into the architecture. (3) <strong>Demo collection quality dominates.</strong> Smooth, consistent, well-covered teleoperation data beats clever algorithms; interfaces (VR rigs, puppeteering setups like ALOHA in L7, handheld grippers like UMI in L6) are first-class research.</p>
@@ -117,9 +101,12 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
-import Lab from '../components/Lab.vue';
 import Quiz from '../components/Quiz.vue';
 import CompleteBar from '../components/CompleteBar.vue';
+import DriftWidget from '../widgets/DriftWidget.vue';
+import CurveWidget from '../widgets/CurveWidget.vue';
+import MeanWidget from '../widgets/MeanWidget.vue';
+import CausalWidget from '../widgets/CausalWidget.vue';
 import { renderMath } from '../composables/useKaTeX.js';
 import { applyXref } from '../composables/useXref.js';
 

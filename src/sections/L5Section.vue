@@ -74,11 +74,7 @@ for iteration in range(1000):
 
     <h4>Watch a policy learn from reward alone</h4>
     <p>The boxed gradient says: push up the log-probability of actions that led to high return, push down the rest. That's abstract — so let's make it move. Below, the cyan curve is a Gaussian policy \(\pi(a)=\mathcal{N}(\mu,\sigma)\); the orange curve is a reward landscape it cannot see and has never been told. Each press samples a handful of actions, scores them by the reward they receive, and takes one policy-gradient step. Green dots did better than the batch average and get their probability pushed up; red dots did worse and get pushed down — that "compared to average" is the baseline from §5.4, included here because without it the policy barely learns. Watch the distribution crawl uphill and tighten around the best action. This is REINFORCE, made visible.</p>
-    <Lab
-      id="pg"
-      title="REINFORCE: a policy climbing a reward it cannot see"
-      :note="`Press <strong>Sample &amp; step</strong> repeatedly, or <strong>Auto-run</strong>. Each dot is a sampled action; its size is the magnitude of its advantage. Notice the policy both <em>shifts</em> toward high reward (the mean update) and <em>narrows</em> as it grows confident (the variance update) — both fall out of the same gradient on \\(\\log\\pi\\).`"
-    />
+    <PgWidget />
 
     <h3><span class="knum">5.3</span>Variance reduction I: causality and reward-to-go</h3>
     <p>Raw REINFORCE multiplies <em>every</em> action's score by the <em>whole</em> trajectory's return — including rewards earned <em>before</em> the action was taken. An action cannot cause the past. Formally, for \(t' &lt; t\), \(\mathbb E[\nabla_\theta \log\pi_\theta(a_t|s_t)\, r_{t'}] = 0\) (condition on everything up to \(t\): \(r_{t'}\) is then a constant, and the expected score is zero — see the lemma in §5.4). Deleting those terms changes nothing in expectation and strictly removes noise, giving the <strong>reward-to-go</strong> form:</p>
@@ -97,11 +93,7 @@ for iteration in range(1000):
 
     <h4>Why subtracting a number kills the noise but not the signal</h4>
     <p>The claim of §5.4 sounds too good: subtract a baseline and the gradient's <em>average</em> is unchanged (still unbiased), while its <em>variance</em> can plummet. See it directly. Below are ten sampled actions; each contributes a gradient term \(g_i=(R_i-b)\,\text{score}_i\). With \(b=0\), every return is positive, so every action is shoved upward with large, similar magnitude — the useful <em>differences</em> between actions are drowned out. Slide \(b\) toward the mean return and watch the bars split into push-up and push-down of <em>small</em> magnitude: same average gradient, far less spread.</p>
-    <Lab
-      id="base"
-      title="A baseline: unbiased, but much lower variance"
-      :note="`The scores are centered (they sum to zero, as \\(\\mathbb{E}[\\nabla\\log\\pi]=0\\) guarantees), so the <em>mean gradient stays exactly constant</em> as you drag \\(b\\) — that's unbiasedness, on screen. Meanwhile the <em>variance</em> reading drops to a minimum near the mean return. That minimum is why we set \\(b\\approx V^\\pi\\): the value function is the best cheaply-available baseline.`"
-    />
+    <BaseWidget />
 
     <h3><span class="knum">5.5</span>Actor-critic and GAE: manufacturing good advantage estimates</h3>
     <p>To use \(b = V^\pi\) we must estimate it: train a second network, the <strong>critic</strong> \(V_\phi\), by TD regression (Lecture 4's machinery), while the <strong>actor</strong> \(\pi_\theta\) ascends the policy gradient. The two run in a loop: rollout → fit \(V_\phi\) → compute advantages → step \(\theta\). For the advantage itself there's a spectrum. Define the <strong>TD error</strong> \(\delta_t = r_t + \gamma V_\phi(s_{t+1}) - V_\phi(s_t)\) — note \(\delta_t\) is itself an unbiased estimate of \(A^\pi(s_t,a_t)\) <em>if</em> \(V_\phi = V^\pi\). Then:</p>
@@ -142,11 +134,7 @@ for iteration in range(N):
 
     <h4>One knob from TD to Monte Carlo</h4>
     <p>GAE looks like a third thing to learn, but it's really just the bias–variance ruler from Lecture 4 with a smooth handle. The advantage estimate is a weighted blend of every \(n\)-step return, with weight \((1-\lambda)\lambda^{n}\) on the \(n\)-step term. Slide \(\lambda\): at \(0\), all weight sits on the one-step TD estimate — lean entirely on the critic, low variance but biased; at \(1\), the weight spreads across the whole trajectory — pure Monte Carlo, unbiased but high variance. The usual choice \(\lambda=0.95\) trusts real rewards while letting the critic quietly soak up variance.</p>
-    <Lab
-      id="gae"
-      title="GAE-λ: interpolating the whole bias–variance spectrum"
-      :note="`Each bar is the weight GAE places on the \\(n\\)-step return. The cyan bar (\\(n=0\\)) is the pure-TD term. As \\(\\lambda\\to1\\) the weight fans out over longer horizons (toward Monte Carlo); the effective horizon of the estimate is \\(\\approx 1/(1-\\lambda)\\). One dial, the entire spectrum. <span class=&quot;notice&quot;>Simplification: the bars show \\((1-\\lambda)\\lambda^{n}\\); the true GAE weights ride on \\((\\gamma\\lambda)^{l}\\), and the per-return weight is conventionally \\((1-\\lambda)\\lambda^{n-1}\\). With \\(\\gamma\\approx0.99\\) the shape is essentially this.</span>`"
-    />
+    <GaeWidget />
 
     <h3><span class="knum">5.6</span>The step-size problem and PPO</h3>
     <p>One more failure mode and we reach the workhorse. The policy gradient is valid <em>at</em> the current \(\theta\); the data was sampled by the current policy. Take too large a step and three things break at once: the gradient estimate is stale, the new policy visits different states, and — uniquely to RL — <em>a bad policy collects bad data</em>, so collapse can be unrecoverable. We want each update to improve the policy <em>without moving it too far from the policy that generated the data</em>.</p>
@@ -159,11 +147,7 @@ for iteration in range(N):
 
     <h4>Why not just take small steps? — and what the clip really does</h4>
     <p>A natural objection: if large policy-gradient steps are dangerous, why not just take tiny ones? Because not all parameter changes are equal — a step that barely moves the weights can violently move the <em>action distribution</em>, and it's distance in <em>distribution</em> space, not weight space, that decides whether the data you just collected is still relevant. TRPO makes this precise by constraining the KL divergence between old and new policy (a trust region); the natural gradient is the same instinct — rescale the step by how much the distribution actually moves. PPO achieves nearly the same safety with a trick you can read off a single graph. Below is the clipped objective as a function of the probability ratio \(r=\pi_\text{new}/\pi_\text{old}\). Toggle the sign of the advantage and slide \(\epsilon\).</p>
-    <Lab
-      id="clip"
-      title="The PPO clip is a one-sided trust region"
-      :note="`On the &quot;tempting&quot; side — raising the probability of a good action (\\(A&gt;0\\)), or lowering it for a bad one (\\(A&lt;0\\)) — the objective goes <em>flat</em> past the clip band \\([1-\\epsilon,\\,1+\\epsilon]\\). Flat means zero gradient means no incentive to move further: the policy may improve, but it cannot run away from the data that justified the update. Crucially it stays sloped on the other side, so a too-large step can still be pulled <em>back</em>.`"
-    />
+    <ClipWidget />
 
     <h3><span class="knum">5.7</span>Off-policy continuous control: DDPG → TD3 → SAC</h3>
     <p>On real hardware, samples are precious, and on-policy methods discard data after each update. The off-policy family keeps Lecture 4's replay buffer and makes the actor solve Q-learning's intractable max. <strong>DDPG</strong>: train \(Q_\phi\) by TD as in DQN, but replace \(\max_{a'} Q(s',a')\) with \(Q_\phi(s', \mu_\theta(s'))\), where the deterministic actor \(\mu_\theta\) is trained to <em>be</em> the argmax by ascending straight up the critic:</p>
@@ -178,11 +162,7 @@ for iteration in range(N):
 
     <h4>Two ways to differentiate an expectation — and why it matters</h4>
     <p>SAC's reparameterized actor and REINFORCE's score-function gradient are the two canonical ways to estimate \(\nabla_\theta \mathbb{E}_{a\sim\pi_\theta}[f(a)]\), and the choice is not cosmetic — one is dramatically noisier than the other. The lab below has both estimate the <em>same</em> gradient of the same objective from the same number of samples. The score-function estimator (orange) weights a black-box reward by the score; the reparameterized estimator (cyan) pushes the sample through a differentiable map and reads the gradient directly. Both are unbiased — both clouds center on the true gradient — but watch the spread, and watch it explode for the score function as you widen the policy.</p>
-    <Lab
-      id="reparam"
-      title="Score-function vs reparameterization: same gradient, different noise"
-      :note="`This is the whole REINFORCE ↔ SAC story in one figure. Reparameterization wins on variance but needs \\(f\\) differentiable in the action (so SAC backprops through the critic); the score function asks only to <em>evaluate</em> \\(f\\) (so REINFORCE tolerates sparse, discontinuous, black-box rewards). Much of deep RL is choosing between these two.`"
-    />
+    <ReparamWidget />
 
     <h3><span class="knum">5.8</span>Making it work on robots: rewards and the reality gap</h3>
     <p><strong>Reward design</strong> is where theory meets craft. Locomotion rewards are weighted cocktails — velocity tracking + survival + torque/jerk/slip penalties — each weight a knob someone tuned for weeks. The Eureka paper (below) automates the craft: a coding LLM writes candidate reward functions for a GPU simulator, an evolutionary outer loop keeps the best against rollout statistics, and the resulting rewards beat human-engineered ones on most tasks, including training a five-finger hand to spin a pen — reward code no human had managed to write.</p>
@@ -190,11 +170,7 @@ for iteration in range(N):
 
     <h4>Domain randomization, in one picture</h4>
     <p>The sim-to-real intuition is easy to state and easier to feel. A policy trained only at the simulator's nominal physics is a sharp spike: superb at exactly those parameters, fragile the moment reality's friction or mass differs. Randomize those parameters during training and you trade a little peak performance for a broad plateau — robust across a whole <em>family</em> of worlds, in the hope that reality lands somewhere inside it. Slide the real-world friction and watch the un-randomized policy fall off a cliff while the randomized one holds.</p>
-    <Lab
-      id="domrand"
-      title="Why a robust plateau beats a fragile peak"
-      :note="`The reality gap is the horizontal distance between &quot;trained here&quot; and &quot;real friction.&quot; Widen the randomization band and the plateau covers more of reality — but notice the peak height drops slightly: robustness isn't free. This is the curve behind every domain-randomized locomotion policy.`"
-    />
+    <DomrandWidget />
 
     <h3><span class="knum">5.9</span>Offline RL: when the robot can't practice</h3>
     <p>Given only a <em>fixed</em> dataset of trajectories (logs, demos, other robots' experience) — no further interaction — can we still find a better policy than the one that collected it? Naive Q-learning fails specifically: the target's \(\max_{a'}\) queries actions <em>absent from the data</em>, where \(Q_\phi\) is unconstrained fantasy; errors feed targets, targets feed errors, values explode. This is <strong>extrapolation error</strong> — Lecture 3's distribution-shift demon, reborn inside the Bellman backup. All offline-RL methods are flavors of one principle, <em>pessimism toward the unknown</em>: constrain the policy near the data's actions, or train \(Q\) with a conservatism term that actively pushes down values of out-of-distribution actions (CQL), so the optimizer has no mirage to climb. The TACO-RL paper below shows the robotics payoff: from uncurated teleoperated "play" data, learn a latent space of <em>plans</em>, run offline RL over plans rather than raw torques — long-horizon kitchen behavior from a fixed dataset, no reward engineering during collection, no risky exploration.</p>
@@ -235,9 +211,14 @@ for iteration in range(N):
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
-import Lab from '../components/Lab.vue';
 import Quiz from '../components/Quiz.vue';
 import CompleteBar from '../components/CompleteBar.vue';
+import PgWidget from '../widgets/PgWidget.vue';
+import BaseWidget from '../widgets/BaseWidget.vue';
+import ClipWidget from '../widgets/ClipWidget.vue';
+import GaeWidget from '../widgets/GaeWidget.vue';
+import ReparamWidget from '../widgets/ReparamWidget.vue';
+import DomrandWidget from '../widgets/DomrandWidget.vue';
 import { renderMath } from '../composables/useKaTeX.js';
 import { applyXref } from '../composables/useXref.js';
 

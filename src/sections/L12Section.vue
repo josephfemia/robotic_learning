@@ -35,11 +35,7 @@
 
     <h4>The whole course as one map</h4>
     <p>Here is everything, on one canvas. The spine is the supervision arc — copy the expert, learn from reward, model the world, scale to foundations — and threaded through it is the recurring disease and its cure. Tap any lecture to see what it contributes and which earlier idea it answers. The point of the map is the realization that the twelve weeks aren't twelve topics; they're one argument with a few motifs that keep returning in new costumes.</p>
-    <Lab
-      id="arc"
-      title="The course as a single argument"
-      :note="`The orange thread is the &quot;optimize-against-an-approximation → it finds the flaws → contain it&quot; motif that recurs in L3, L4, L5, and L8. The cyan spine is the supervision arc. Tap a node to read its one-line role and jump to the lecture. This is the mental model to keep after everything else fades.`"
-    />
+    <ArcWidget />
 
     <Quiz lecture="l12" />
 
@@ -58,7 +54,7 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
-import Lab from '../components/Lab.vue';
+import ArcWidget from '../widgets/ArcWidget.vue';
 import Quiz from '../components/Quiz.vue';
 import CompleteBar from '../components/CompleteBar.vue';
 import { renderMath } from '../composables/useKaTeX.js';

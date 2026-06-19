@@ -31,11 +31,7 @@
 
     <h4>Watch unbiased-but-noisy race biased-but-stable</h4>
     <p>The bias–variance story is easier to believe once you watch it. Below, a fixed 5-state chain has true values we know; press <strong>Run episodes</strong> and watch two estimators chase them. Monte Carlo (orange) jumps around the truth — unbiased, but every episode injects a whole trajectory's noise. TD (cyan) glides in smoothly — low variance — but leans early on its own wrong guesses (bias). Neither is "right"; they sit at two ends of one ruler.</p>
-    <Lab
-      id="mctd"
-      title="Monte Carlo vs. TD: the same target, two error profiles"
-      :note="`Dashed line = true value of each state. Run episodes and watch the bars converge: MC (orange) is jumpy and unbiased; TD (cyan) is smooth but biased while learning. Raise the learning rate \\(\\alpha\\) to trade stability for speed. This is the dial GAE will later make continuous.`"
-    />
+    <MctdWidget />
 
     <h3><span class="knum">4.3</span>Control: Q-learning and SARSA</h3>
     <p>For control without a model, learn \(Q\) instead of \(V\) — then greedy action needs no \(P\): \(\pi(s) = \arg\max_a Q(s,a)\). Two classic updates, one crucial difference:</p>
@@ -70,11 +66,7 @@ for episode in range(50_000):
 
     <h4>Why exploration is its own problem</h4>
     <p>Q-learning's convergence guarantee assumes you keep visiting every state-action — but a greedy agent stops exploring the moment it finds something decent, and may never discover the better option two doors down. The cleanest sandbox is a multi-armed bandit: several actions with hidden payoffs, and only your own pulls to learn from. Try the three classic strategies and watch the regret (lost reward vs. always picking the best arm) accumulate.</p>
-    <Lab
-      id="bandit"
-      title="Exploration strategies on a multi-armed bandit"
-      :note="`Each bar is an arm; height = your current estimate, the dot = its hidden true payoff. <strong>Greedy</strong> often locks onto a wrong arm; <strong>ε-greedy</strong> keeps sampling and usually finds the best; <strong>UCB</strong> explores by optimism (try what you're uncertain about). Watch cumulative regret — flatter is better. This is the §4.3 exploration problem in its purest form.`"
-    />
+    <BanditWidget />
 
     <h3><span class="knum">4.4</span>Function approximation and the DQN surgery</h3>
     <p>Robots don't have tabular states — observations are images in \(\mathbb R^{\text{millions}}\). Replace the table with a network \(Q_\phi(s,a)\) trained by regression on TD targets:</p>
@@ -98,11 +90,7 @@ for episode in range(50_000):
 
     <h4>Toggle the three legs and watch divergence appear</h4>
     <p>The claim that the triad is dangerous <em>only when all three legs are present</em> is the kind of thing you should verify, not take on faith. Below is a miniature value-learning problem with three switches: <strong>function approximation</strong> (shared features across states), <strong>bootstrapping</strong> (targets built from current estimates), and <strong>off-policy</strong> data. Flip them on one at a time and the value estimates stay bounded. Flip on all three and watch them spiral to infinity — with no reward driving it, the estimator chasing its own reflection. Remove any single leg and the divergence dies.</p>
-    <Lab
-      id="triad"
-      title="The deadly triad: lethal only in combination"
-      :note="`Each line is a state's value estimate over training steps. Any one or two legs: stable. All three: divergence. This is why DQN's tricks (replay buffer, frozen target network) target the <em>bootstrapping</em> leg — it's the one you can't simply remove, so you tame it instead.`"
-    />
+    <TriadWidget />
 
     <p>Everything above leans on \(\max_{a} Q(s,a)\). A robot arm's action is a vector in \(\mathbb R^{7}\) (or \(\mathbb R^{14+}\) bimanual) — that max is a nonconvex optimization <em>per decision, per training target</em>. Discretizing 7 dimensions at 10 bins each is \(10^7\) actions. Value-based control, as stated, does not survive contact with robot action spaces. Three escapes, and the course takes all of them: (i) <em>restructure the action space</em> so the max is cheap — this week's Zeng et al. paper makes "actions" pixels of a Q-map and the max an argmax over an image; (ii) <em>learn a policy network directly</em> — Lecture 5; (iii) <em>have a policy network propose, a critic evaluate</em> — actor-critic, also Lecture 5.</p>
 
@@ -138,11 +126,13 @@ for episode in range(50_000):
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
-import Lab from '../components/Lab.vue';
 import Quiz from '../components/Quiz.vue';
 import CompleteBar from '../components/CompleteBar.vue';
 import { renderMath } from '../composables/useKaTeX.js';
 import { applyXref } from '../composables/useXref.js';
+import MctdWidget from '../widgets/MctdWidget.vue';
+import BanditWidget from '../widgets/BanditWidget.vue';
+import TriadWidget from '../widgets/TriadWidget.vue';
 
 defineEmits(['navigate']);
 
