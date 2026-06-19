@@ -27,11 +27,7 @@
 
     <h4>Tune the three gains and feel the tradeoffs</h4>
     <p>PID is three knobs, and the only way to understand them is to turn them. Below, a mass must reach the dashed target line; the controller pushes it using the error, the error's integral, and its derivative. Crank \(K_p\) and it gets there faster but overshoots and rings; add \(K_d\) and the ringing damps out; if it settles just short of the line, a touch of \(K_i\) erases that steady-state gap. Push any one too far and watch it go unstable — the entire art of classical control, in one plot.</p>
-    <Lab
-      id="pid"
-      title="PID control: the three gains, felt"
-      :note="`\\(K_p\\) = how hard to push on the current error (fast but oscillatory), \\(K_d\\) = push against the rate of change (damping), \\(K_i\\) = accumulate past error (kills the final offset). The dashed line is the target; the curve is the response over time. There's no single right answer — only tradeoffs, which is exactly why the next step is to make it an optimization (LQR).`"
-    />
+    <PidWidget />
 
     <h3><span class="knum">2.2</span>Optimal control and LQR: control as optimization</h3>
     <p>Pose the goal as minimizing cumulative cost over a horizon, subject to dynamics:</p>
@@ -64,11 +60,7 @@
 
     <h4>Watch dynamic programming actually happen</h4>
     <p>The equations above can feel inert. So let's not solve the MDP in closed form — let's <em>watch</em> value iteration converge. Below is the classic gridworld: a \(+1\) goal, a \(-1\) pit, one wall. Every cell starts believing it's worth \(0\). Press <strong>Step</strong> to apply the Bellman optimality update everywhere at once — each cell looks at its neighbors and keeps the best <em>(reward + discounted neighbor value)</em>. Watch value bleed outward from the goal, one ring per sweep, and watch the greedy policy arrows snap into a coherent plan the instant the numbers beneath them make sense. That outward propagation <em>is</em> the \(\gamma\)-contraction (proof in the next panel), made visible.</p>
-    <Lab
-      id="grid"
-      title="Value iteration converging on a gridworld"
-      :note="`Cell color = current value estimate (green positive, red negative); cyan arrow = the greedy action it implies. <strong>Step</strong> does one synchronous Bellman sweep; <strong>Run</strong> animates to convergence. Notice the policy is correct near the goal long before distant values settle — and that raising \\(\\gamma\\) lets the goal's influence reach farther. <span class=&quot;notice&quot;>Convention: deterministic moves, a per-step living cost, state-rewards with terminals pinned at \\(\\pm1\\) — chosen for a clean, readable backup; the classic Russell–Norvig version adds 80/10/10 slip noise.</span>`"
-    />
+    <GridWidget />
 
     <h3><span class="knum">2.5</span>Reward design and the limits of the formalism</h3>
     <p>The MDP assumes someone hands you \(r(s,a)\). In robotics, <em>you</em> are that someone, and it's treacherous: sparse rewards ("+1 on task success") are honest but nearly unlearnable from scratch; dense shaped rewards ("negative distance to goal + bonus for grasp + penalty for jerk...") are learnable but get gamed — the agent optimizes what you wrote, not what you meant. Hold this thought: it returns in L5 (Eureka: LLMs writing reward code) and is one reason imitation (L3) and foundation-model approaches (L9) are so attractive — they sidestep reward design entirely.</p>
@@ -107,9 +99,10 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
-import Lab from '../components/Lab.vue';
 import Quiz from '../components/Quiz.vue';
 import CompleteBar from '../components/CompleteBar.vue';
+import GridWidget from '../widgets/GridWidget.vue';
+import PidWidget from '../widgets/PidWidget.vue';
 import { renderMath } from '../composables/useKaTeX.js';
 import { applyXref } from '../composables/useXref.js';
 

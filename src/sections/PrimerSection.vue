@@ -34,11 +34,7 @@
 
     <h4>Feel configuration space: drive an arm by its joint angles</h4>
     <p>The abstract phrase "the policy outputs joint angles \(q\)" becomes obvious the moment you see it. Below is a 2-joint arm. You don't move the hand directly — you set the two <em>angles</em>, and forward kinematics decides where the hand lands. Sweep them and watch the reachable workspace fill in. Two things to notice: most hand positions are reachable by <em>two</em> different angle combinations (that's why inverse kinematics has multiple solutions), and a small change in angle near full extension moves the hand a lot (that's the Jacobian stretching). This is the space every learned policy is really acting in.</p>
-    <Lab
-      id="arm"
-      title="Forward kinematics: joint angles → hand position"
-      :note="`You control \\(q=(\\theta_1,\\theta_2)\\); the hand position \\(p_{\\text{ee}}=f(q)\\) follows. &quot;Trace workspace&quot; sweeps the joints to draw every reachable point — the arm's configuration space made visible. The action space of a real policy is exactly these angles, not the Cartesian hand position you might expect.`"
-    />
+    <ArmWidget />
 
     <p>$$M(q)\,\ddot q + C(q,\dot q)\,\dot q + g(q) = \tau$$</p>
     <p>\(M\) is the configuration-dependent inertia matrix, \(C\) collects Coriolis/centrifugal terms, \(g\) is gravity, and \(\tau\) is the vector of motor torques you command. If you knew this model perfectly, control would be (almost) calculus. The catch: the moment the robot <em>touches anything</em> — a mug, the floor, a door handle — you add contact forces and friction, which are discontinuous, hard to measure, and brutally hard to model. <strong>Contact is the single biggest reason manipulation resists classical methods and motivates learning.</strong></p>
@@ -118,8 +114,8 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
-import Lab from '../components/Lab.vue';
 import DiscWidget from '../widgets/DiscWidget.vue';
+import ArmWidget from '../widgets/ArmWidget.vue';
 import Quiz from '../components/Quiz.vue';
 import CompleteBar from '../components/CompleteBar.vue';
 import { renderMath } from '../composables/useKaTeX.js';

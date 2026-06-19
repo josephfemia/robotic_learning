@@ -30,11 +30,7 @@
 
     <h4>Watch the affordance term veto a sensible plan</h4>
     <p>The product is easy to feel once you can move the two votes independently. Below, an instruction yields several candidate skills, each with an <em>LLM score</em> (does this make sense?) and an <em>affordance score</em> (can I do it here, now?). Toggle whether a sponge is in the room and watch the ranking re-sort: when the sponge vanishes, "pick up the sponge" keeps its high language score but its feasibility collapses, so the product drops it down the list and a feasible alternative wins.</p>
-    <Lab
-      id="saycan"
-      title="SayCan: language prior × feasibility = grounded plan"
-      :note="`Bars are the final score (the product). A high language score can't rescue an infeasible skill, and a feasible-but-irrelevant skill stays low — only skills that score on <em>both</em> votes rise. That multiplicative gate is the entire idea: neither the LLM nor the value function alone is trusted to pick.`"
-    />
+    <SaycanWidget />
 
     <h3><span class="knum">10.3</span>Reasoning in code, and agents that grow</h3>
     <p><strong>Code as Policies:</strong> have the LLM emit <em>programs</em>, not action strings — Python composing perception calls and motion primitives, with loops, conditionals, and arithmetic. Code is the natural representation for spatial-numeric reasoning ("place them 5 cm apart in a line"), it's inspectable, and it composes. <strong>Voyager</strong> (in Minecraft, but the architecture is the point) closes the loop into an open-ended agent: an automatic curriculum proposes next goals, the LLM writes code to attempt them, execution errors and environment feedback drive iterative refinement, and verified successes are stored in a <strong>skill library</strong> — retrievable, composable, permanent. No gradient updates anywhere: the "learning" is accumulated, reusable code. This is lifelong learning as software engineering, and a preview of how robot systems may acquire competence without touching model weights.</p>
@@ -51,11 +47,7 @@
 
     <h4>Best-of-N is only as good as its judge</h4>
     <p>Sample-and-verify sounds like a free win: generate \(N\) candidate plans, keep the one the verifier likes best. The catch is the verifier. Below, raise \(N\) and watch success climb — when the verifier is accurate. Now degrade the verifier and push \(N\) up: the system confidently selects candidates that <em>score</em> well but <em>fail</em>, and more samples make it worse, not better. This is reward-model hacking and the robot grasp-verification problem in one picture.</p>
-    <Lab
-      id="bon"
-      title="Best-of-N with an imperfect verifier"
-      :note="`Green = true success rate of the selected plan; the dashed line is a single sample (N=1) for reference. With a strong verifier, more samples help. With a weak verifier, best-of-N optimizes the <em>verifier's</em> mistakes — selecting fluent failures — so the curve bends <em>down</em>. The whole bet of test-time scaling lives in the gap between these two regimes.`"
-    />
+    <BonWidget />
 
     <div class="bridge">
       <div class="bridge-title">Bridge · From your background</div>
@@ -88,7 +80,8 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
-import Lab from '../components/Lab.vue';
+import SaycanWidget from '../widgets/SaycanWidget.vue';
+import BonWidget from '../widgets/BonWidget.vue';
 import Quiz from '../components/Quiz.vue';
 import CompleteBar from '../components/CompleteBar.vue';
 import { renderMath } from '../composables/useKaTeX.js';

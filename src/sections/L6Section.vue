@@ -46,11 +46,7 @@
 
     <h4>From noise to a decision — and back to multimodality</h4>
     <p>Diffusion can sound mysterious, so here is the whole idea in one image. A diffusion model learns to reverse a noising process; equivalently, it learns the <em>score</em> \(\nabla_a \log p(a\mid o)\) — the direction in action space that makes an action more plausible. Sampling just starts from random noise and repeatedly steps along that direction. Press <strong>Denoise</strong> and watch a cloud of pure noise resolve into the two valid action modes — "go left" and "go right," the same maneuvers the averaging trap destroyed two lectures ago.</p>
-    <Lab
-      id="diff"
-      title="Diffusion sampling: noise → a multimodal action"
-      :note="`Every grey dot is a random starting point; <strong>Denoise</strong> follows the learned score toward regions of high probability. The punchline that defeats mean-collapse: <em>where a particle lands depends on where it started</em>, so the same model fluidly produces both maneuvers — never their disastrous average. This is exactly why diffusion policies handle multimodal demonstrations that MSE cannot. <span class=&quot;notice&quot;>Caveat: &quot;where it starts decides the mode&quot; is exactly true only for the deterministic probability-flow ODE; the stochastic sampler shown also injects noise each step, so the seed sets the <em>tendency</em>, not a fixed destination.</span>`"
-    />
+    <DiffWidget />
 
     <h3><span class="knum">6.4</span>Flow matching: diffusion's faster sibling</h3>
     <p>Same goal, neater mechanics: define a continuous path from noise to data, \(x_t = (1-t)\,\varepsilon + t\,x_0\) (straight-line interpolation, \(t\in[0,1]\)), and regress a velocity field onto the path's constant velocity:</p>
@@ -60,11 +56,7 @@
 
     <h4>Sampling as ODE integration — the "straight roads" payoff</h4>
     <p>Flow matching's advantage is mechanical, and you can watch it. Sampling is just integrating the learned velocity field \(\dot x = v_\theta(x,t)\) from noise (\(t=0\)) to data (\(t=1\)) — each step is one network evaluation. Because the learned paths are nearly straight, you can take <em>few</em> big steps and still arrive; diffusion's curved, noisy reverse process needs many. Slide the step count and watch coarse-but-fast become smooth-but-exact, and notice how few steps can misroute the samples that start near the decision boundary between the two action modes.</p>
-    <Lab
-      id="flowode"
-      title="Integrating the flow: steps vs accuracy"
-      :note="`Number of integration steps = number of function evaluations = your latency budget. This is exactly why π0's flow-matching action head can emit high-frequency action chunks on real hardware where a many-step diffusion sampler would be too slow. Same multimodal target as the diffusion lab above — different, faster road to it.`"
-    />
+    <FlowodeWidget />
 
     <h3><span class="knum">6.5</span>Closing the loop with RL</h3>
     <p>Generative policies are trained by imitation — capped at demo quality (Lecture 3's ceiling). Can RL improve a diffusion policy? Directly backpropagating returns through a multi-step sampler is painful. The DSRL paper below offers an elegant dodge: freeze the diffusion policy and let RL act in its <em>latent noise space</em> — the RL agent picks the seed/noise, the frozen policy decodes it to actions. The diffusion model becomes a learned, safe, demo-shaped action space for RL: tiny action dimension, all actions plausible, hardware-safe exploration. A perfect L5↔L6 marriage, and a sign of where the field is heading (you'll see RL-over-VLA again as π*0.6 in Lecture 9).</p>
@@ -102,8 +94,9 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
-import Lab from '../components/Lab.vue';
 import Quiz from '../components/Quiz.vue';
+import DiffWidget from '../widgets/DiffWidget.vue';
+import FlowodeWidget from '../widgets/FlowodeWidget.vue';
 import CompleteBar from '../components/CompleteBar.vue';
 import { renderMath } from '../composables/useKaTeX.js';
 import { applyXref } from '../composables/useXref.js';
