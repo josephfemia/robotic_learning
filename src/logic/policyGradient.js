@@ -74,3 +74,66 @@ export function policyGradientStep(mu, logsig, lr, actions) {
 export function clamp(v, a, b) {
   return v < a ? a : (v > b ? b : v);
 }
+
+/**
+ * Numerically verify the log-derivative (REINFORCE) identity on a tiny discrete toy:
+ *
+ *   ∇_θ 𝔼_{a~π_θ}[R(a)]  =  𝔼_{a~π_θ}[ ∇_θ log π_θ(a) · R(a) ]
+ *
+ * Toy setup: K-action discrete softmax policy.
+ *   π_θ(a) = softmax(θ)[a] = exp(θ_a) / Σ_j exp(θ_j)
+ *   R — fixed reward vector, one scalar per action.
+ *
+ * Left-hand side (analytic gradient of 𝔼[R] w.r.t. θ):
+ *   d/dθ_i 𝔼[R] = Σ_a R(a) · dπ(a)/dθ_i
+ *   Softmax Jacobian: dπ(a)/dθ_i = π(a)(δ_{a=i} - π(i))
+ *   → analyticGrad[i] = π(i) · (R(i) - 𝔼[R])
+ *
+ * Right-hand side (score-function / REINFORCE estimator):
+ *   ∇_θ_i log π_θ(a) = δ_{a=i} - π(i)   (score function of softmax)
+ *   estimatorGrad[i] = Σ_a π(a) · (δ_{a=i} - π(i)) · R(a)
+ *                    = π(i)R(i) - π(i)·𝔼[R]
+ *                    = π(i)·(R(i) - 𝔼[R])      ← identical to LHS ✓
+ *
+ * Both sides agree analytically; this function makes that verifiable
+ * by computing them independently so a test can assert closeness.
+ *
+ * @param {number[]} theta   - logit parameters (length K)
+ * @param {number[]} rewards - fixed reward per action (length K)
+ * @returns {{ analyticGrad: number[], estimatorGrad: number[], probs: number[], expectedReward: number }}
+ */
+export function logDerivativeIdentity(theta, rewards) {
+  var K = theta.length;
+
+  // Softmax — numerically stable via max subtraction
+  var maxTheta = -Infinity;
+  for (var j = 0; j < K; j++) if (theta[j] > maxTheta) maxTheta = theta[j];
+  var ex = theta.map(function(t) { return Math.exp(t - maxTheta); });
+  var Z = ex.reduce(function(s, v) { return s + v; }, 0);
+  var probs = ex.map(function(v) { return v / Z; });
+
+  // 𝔼[R] = Σ_a π(a) R(a)
+  var expectedReward = 0;
+  for (var a = 0; a < K; a++) expectedReward += probs[a] * rewards[a];
+
+  // Analytic gradient of 𝔼[R] w.r.t. θ
+  // analyticGrad[i] = Σ_a R(a) · π(a) · (δ_{a=i} - π(i))
+  //                 = R(i)·π(i) - π(i)·𝔼[R]
+  //                 = π(i)·(R(i) - 𝔼[R])
+  var analyticGrad = probs.map(function(pi, i) {
+    return pi * (rewards[i] - expectedReward);
+  });
+
+  // Score-function / REINFORCE estimator gradient
+  // estimatorGrad[i] = Σ_a π(a) · score(a, i) · R(a)
+  //                  where score(a, i) = δ_{a=i} - π(i)
+  var estimatorGrad = new Array(K).fill(0);
+  for (var i = 0; i < K; i++) {
+    for (var aa = 0; aa < K; aa++) {
+      var score = (aa === i ? 1 : 0) - probs[i];
+      estimatorGrad[i] += probs[aa] * score * rewards[aa];
+    }
+  }
+
+  return { analyticGrad: analyticGrad, estimatorGrad: estimatorGrad, probs: probs, expectedReward: expectedReward };
+}

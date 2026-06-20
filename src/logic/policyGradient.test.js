@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { reward, policyGradientStep, clamp } from './policyGradient.js';
+import { reward, policyGradientStep, clamp, logDerivativeIdentity } from './policyGradient.js';
 
 // Initial values from the original IIFE:
 //   mu=-1.1, logsig=Math.log(0.85), lr=0.12
@@ -81,4 +81,73 @@ describe('clamp', () => {
   it('clamps below min', () => { expect(clamp(-5, -3, 3)).toBe(-3); });
   it('clamps above max', () => { expect(clamp(5, -3, 3)).toBe(3); });
   it('passes through mid-range', () => { expect(clamp(1, -3, 3)).toBe(1); });
+});
+
+// ---------------------------------------------------------------------------
+// logDerivativeIdentity — numerical verification of the REINFORCE identity
+//   ∇_θ 𝔼[R(a)] = 𝔼[ ∇_θ log π_θ(a) · R(a) ]
+//
+// Toy setup: 3-action discrete softmax policy.
+//   θ = [θ0, θ1, θ2]
+//   π_θ(a) = softmax(θ)[a]
+//   R = fixed reward vector, one scalar per action.
+// The function must return { analyticGrad, estimatorGrad } — two length-3 arrays.
+// ---------------------------------------------------------------------------
+
+describe('logDerivativeIdentity', () => {
+  // Toy: 3 actions, fixed rewards, explicit θ
+  const theta = [0.5, -0.3, 1.1];
+  const rewards = [0.2, 0.9, 0.4];
+
+  it('returns an object with analyticGrad and estimatorGrad arrays', () => {
+    const result = logDerivativeIdentity(theta, rewards);
+    expect(result).toHaveProperty('analyticGrad');
+    expect(result).toHaveProperty('estimatorGrad');
+    expect(Array.isArray(result.analyticGrad)).toBe(true);
+    expect(Array.isArray(result.estimatorGrad)).toBe(true);
+    expect(result.analyticGrad.length).toBe(theta.length);
+    expect(result.estimatorGrad.length).toBe(theta.length);
+  });
+
+  it('analytic gradient matches score-function estimator to 6 decimal places', () => {
+    const { analyticGrad, estimatorGrad } = logDerivativeIdentity(theta, rewards);
+    for (let i = 0; i < theta.length; i++) {
+      expect(analyticGrad[i]).toBeCloseTo(estimatorGrad[i], 6);
+    }
+  });
+
+  it('analyticGrad[0] matches known finite-difference value', () => {
+    // Finite-difference check: d/dθ0 𝔼[R] ≈ (𝔼_R(θ0+ε) - 𝔼_R(θ0-ε)) / (2ε)
+    const eps = 1e-5;
+    function eR(th) {
+      // softmax
+      const ex = th.map(v => Math.exp(v));
+      const Z = ex.reduce((s, v) => s + v, 0);
+      const p = ex.map(v => v / Z);
+      return p.reduce((s, pi, i) => s + pi * rewards[i], 0);
+    }
+    const tPlus  = [theta[0] + eps, theta[1], theta[2]];
+    const tMinus = [theta[0] - eps, theta[1], theta[2]];
+    const fd = (eR(tPlus) - eR(tMinus)) / (2 * eps);
+    const { analyticGrad } = logDerivativeIdentity(theta, rewards);
+    expect(analyticGrad[0]).toBeCloseTo(fd, 5);
+  });
+
+  it('gradient is zero when all rewards are equal (no signal)', () => {
+    const flatRewards = [0.5, 0.5, 0.5];
+    const { analyticGrad, estimatorGrad } = logDerivativeIdentity(theta, flatRewards);
+    for (let i = 0; i < theta.length; i++) {
+      expect(analyticGrad[i]).toBeCloseTo(0, 10);
+      expect(estimatorGrad[i]).toBeCloseTo(0, 10);
+    }
+  });
+
+  it('works with uniform policy (all θ = 0)', () => {
+    const uniformTheta = [0, 0, 0];
+    const { analyticGrad, estimatorGrad } = logDerivativeIdentity(uniformTheta, rewards);
+    // Both sides should still agree
+    for (let i = 0; i < uniformTheta.length; i++) {
+      expect(analyticGrad[i]).toBeCloseTo(estimatorGrad[i], 6);
+    }
+  });
 });
