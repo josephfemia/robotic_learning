@@ -83,7 +83,7 @@
       <div class="res-head">Lecture 6 resources</div>
       <ul>
         <li><span class="rtag">Slides</span><a href="https://cvg.ethz.ch/lectures/Robot-Learning/lectures/lecture6_generative.pdf" target="_blank" rel="noopener">lecture6_generative.pdf</a></li>
-        <li><span class="rtag">Recording</span><a href="https://video.ethz.ch/lectures/d-infk/2026/spring/263-5911-00L/v/LFYFshj243o" target="_blank" rel="noopener">ETH video portal — Lecture 6</a></li>
+        <li><span class="rtag">Recording</span><a href="https://youtu.be/qd6Ldsuu46I" target="_blank" rel="noopener">YouTube recording — Lecture 6</a></li>
         <li><span class="rtag">Guest</span><a href="https://youtu.be/tvFvIEOBKfM" target="_blank" rel="noopener">Cheng Chi (Sunday Robotics; Diffusion Policy &amp; UMI lead) — guest spotlight</a></li>
       </ul>
     </div>

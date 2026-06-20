@@ -70,7 +70,7 @@
       <div class="res-head">Lecture 8 resources</div>
       <ul>
         <li><span class="rtag">Slides</span><a href="https://cvg.ethz.ch/lectures/Robot-Learning/lectures/lecture8_world_models.pdf" target="_blank" rel="noopener">lecture8_world_models.pdf</a></li>
-        <li><span class="rtag">Recording</span><a href="https://video.ethz.ch/lectures/d-infk/2026/spring/263-5911-00L/v/Jb90moV57jQ" target="_blank" rel="noopener">ETH video portal — Lecture 8</a></li>
+        <li><span class="rtag">Recording</span><a href="https://youtu.be/cTTmUZlOF2s" target="_blank" rel="noopener">YouTube recording — Lecture 8</a></li>
         <li><span class="rtag">Guest</span><a href="https://www.youtube.com/watch?v=fqkp_wkov6M" target="_blank" rel="noopener">Scott Reed (NVIDIA GEAR; Gato lead author) — guest spotlight</a></li>
       </ul>
     </div>

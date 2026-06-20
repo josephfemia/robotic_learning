@@ -115,7 +115,7 @@ for episode in range(50_000):
       <div class="res-head">Lecture 4 resources</div>
       <ul>
         <li><span class="rtag">Slides</span><a href="https://cvg.ethz.ch/lectures/Robot-Learning/lectures/lecture4_rl_I.pdf" target="_blank" rel="noopener">lecture4_rl_I.pdf</a></li>
-        <li><span class="rtag">Recording</span><a href="https://video.ethz.ch/lectures/d-infk/2026/spring/263-5911-00L/v/Es_bD52lZcS" target="_blank" rel="noopener">ETH video portal — Lecture 4</a></li>
+        <li><span class="rtag">Recording</span><a href="https://youtu.be/90raNpc11tQ" target="_blank" rel="noopener">YouTube recording — Lecture 4</a></li>
         <li><span class="rtag">Guest</span><a href="https://youtu.be/fHHLmTu9sFk" target="_blank" rel="noopener">Aviral Kumar (CMU / Google DeepMind) — guest spotlight</a></li>
       </ul>
     </div>

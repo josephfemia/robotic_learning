@@ -86,7 +86,7 @@
         <li><span class="rtag">Page</span><a href="https://cvg.ethz.ch/lectures/Robot-Learning/" target="_blank" rel="noopener">Official course website (syllabus, slides, schedule)</a></li>
         <li><span class="rtag">YouTube</span><a href="https://www.youtube.com/playlist?list=PLPU18BnWYUZJx3_d901-GD6BGpeWwE2vx" target="_blank" rel="noopener">Main lecture playlist (Oier Mees)</a></li>
         <li><span class="rtag">Code</span><a href="https://github.com/mees-robot-learning-course/ethz-course-2026" target="_blank" rel="noopener">Course GitHub: homework 1–4 (PyTorch, Control/MDPs, Imitation, RL)</a></li>
-        <li><span class="rtag">Recordings</span><a href="https://video.ethz.ch/lectures/d-infk/2026/spring/263-5911-00L" target="_blank" rel="noopener">ETH video portal (all lecture recordings)</a></li>
+        <li><span class="rtag">Recordings</span><a href="https://www.youtube.com/playlist?list=PLPU18BnWYUZJx3_d901-GD6BGpeWwE2vx" target="_blank" rel="noopener">All lecture recordings (YouTube)</a></li>
       </ul>
     </div>
 

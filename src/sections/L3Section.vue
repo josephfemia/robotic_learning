@@ -89,7 +89,7 @@
       <div class="res-head">Lecture 3 resources</div>
       <ul>
         <li><span class="rtag">Slides</span><a href="https://cvg.ethz.ch/lectures/Robot-Learning/lectures/lecture3_imitation.pdf" target="_blank" rel="noopener">lecture3_imitation.pdf</a></li>
-        <li><span class="rtag">Recording</span><a href="https://video.ethz.ch/lectures/d-infk/2026/spring/263-5911-00L/v/JsiQ5TXg7TE" target="_blank" rel="noopener">ETH video portal — Lecture 3</a></li>
+        <li><span class="rtag">Recording</span><a href="https://youtu.be/Ef4R5s1LqoQ" target="_blank" rel="noopener">YouTube recording — Lecture 3</a></li>
         <li><span class="rtag">Guest</span><a href="https://youtu.be/qvTP6T5oq1w" target="_blank" rel="noopener">Danfei Xu (Georgia Tech) — guest spotlight</a></li>
         <li><span class="rtag">Homework</span><a href="https://github.com/mees-robot-learning-course/ethz-course-2026/tree/main/hw3_imitation_learning" target="_blank" rel="noopener">HW3: Imitation Learning</a> — you will <em>see</em> compounding errors in your own rollouts; nothing teaches §3.2 better</li>
       </ul>

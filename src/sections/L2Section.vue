@@ -87,7 +87,7 @@
       <div class="res-head">Lecture 2 resources</div>
       <ul>
         <li><span class="rtag">Slides</span><a href="https://cvg.ethz.ch/lectures/Robot-Learning/lectures/lecture2_control_mdp.pdf" target="_blank" rel="noopener">lecture2_control_mdp.pdf</a></li>
-        <li><span class="rtag">Recording</span><a href="https://video.ethz.ch/lectures/d-infk/2026/spring/263-5911-00L/v/L224Ovxd2l4" target="_blank" rel="noopener">ETH video portal — Lecture 2</a></li>
+        <li><span class="rtag">Recording</span><a href="https://www.youtube.com/watch?v=5-Bb84eTTqQ" target="_blank" rel="noopener">YouTube recording — Lecture 2</a></li>
         <li><span class="rtag">Guest</span><a href="https://youtu.be/aG8NPTPhwkE" target="_blank" rel="noopener">Abhishek Gupta (UW) — guest spotlight</a></li>
         <li><span class="rtag">Homework</span><a href="https://github.com/mees-robot-learning-course/ethz-course-2026/tree/main/hw2_robot_control_mdps" target="_blank" rel="noopener">HW2: Robot Control &amp; MDPs</a> — implement value/policy iteration yourself; it makes L4 trivial to follow</li>
       </ul>

@@ -82,7 +82,7 @@
       <div class="res-head">Lecture 7 resources</div>
       <ul>
         <li><span class="rtag">Slides</span><a href="https://cvg.ethz.ch/lectures/Robot-Learning/lectures/lecture7_sequence_modeling.pdf" target="_blank" rel="noopener">lecture7_sequence_modeling.pdf</a></li>
-        <li><span class="rtag">Recording</span><a href="https://video.ethz.ch/lectures/d-infk/2026/spring/263-5911-00L/v/F8PRjuPO59n" target="_blank" rel="noopener">ETH video portal — Lecture 7</a></li>
+        <li><span class="rtag">Recording</span><a href="https://youtu.be/imSTfMJjp7M" target="_blank" rel="noopener">YouTube recording — Lecture 7</a></li>
         <li><span class="rtag">Guest</span><a href="https://youtu.be/VS7Ulaugevg" target="_blank" rel="noopener">Ted Xiao (Prometheus, ex-Google DeepMind): Three Eras of Robot Learning</a> — watch this one; it's the course's historical thesis in 30 minutes</li>
       </ul>
     </div>

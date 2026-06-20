@@ -199,7 +199,7 @@ for iteration in range(N):
       <div class="res-head">Lecture 5 resources</div>
       <ul>
         <li><span class="rtag">Slides</span><a href="https://cvg.ethz.ch/lectures/Robot-Learning/lectures/lecture5_rl_II.pdf" target="_blank" rel="noopener">lecture5_rl_II.pdf</a></li>
-        <li><span class="rtag">Recording</span><a href="https://video.ethz.ch/lectures/d-infk/2026/spring/263-5911-00L/v/D5hhpjIs3C4" target="_blank" rel="noopener">ETH video portal — Lecture 5</a> · <a href="https://www.youtube.com/watch?v=AdTGz8YnnlE" target="_blank" rel="noopener">YouTube mirror</a></li>
+        <li><span class="rtag">Recording</span><a href="https://www.youtube.com/watch?v=AdTGz8YnnlE" target="_blank" rel="noopener">YouTube recording — Lecture 5</a></li>
         <li><span class="rtag">Guest</span><a href="https://youtu.be/CPmTpXA5azw" target="_blank" rel="noopener">Andrew Wagenmaker (UC Berkeley) — guest spotlight</a></li>
         <li><span class="rtag">Homework</span><a href="https://github.com/mees-robot-learning-course/ethz-course-2026/tree/main/hw4_reinforcement_learning" target="_blank" rel="noopener">HW4: Reinforcement Learning</a> — implement the gradient estimator with and without baseline and <em>plot the variance</em>; it's the whole lecture in one figure</li>
       </ul>

@@ -73,7 +73,7 @@
       <div class="res-head">Lecture 9 resources</div>
       <ul>
         <li><span class="rtag">Slides</span><a href="https://cvg.ethz.ch/lectures/Robot-Learning/lectures/lecture9_generalist_policies.pdf" target="_blank" rel="noopener">lecture9_generalist_policies.pdf</a></li>
-        <li><span class="rtag">Recording</span><a href="https://video.ethz.ch/lectures/d-infk/2026/spring/263-5911-00L/v/KyyHLxpERXT" target="_blank" rel="noopener">ETH video portal — Lecture 9</a></li>
+        <li><span class="rtag">Recording</span><a href="https://youtu.be/dtofzDY9zuo" target="_blank" rel="noopener">YouTube recording — Lecture 9</a></li>
         <li><span class="rtag">Guest</span><a href="https://youtu.be/pzolgvyWEFY" target="_blank" rel="noopener">Quan Vuong (Physical Intelligence co-founder) — guest spotlight</a></li>
         <li><span class="rtag">Context</span><a href="http://calvin.cs.uni-freiburg.de/" target="_blank" rel="noopener">CALVIN benchmark</a> · <a href="https://robotics-transformer-x.github.io/" target="_blank" rel="noopener">Open X-Embodiment</a> · <a href="https://openvla.github.io/" target="_blank" rel="noopener">OpenVLA</a></li>
       </ul>
