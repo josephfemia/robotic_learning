@@ -14,7 +14,7 @@ import R from './rllab.js';
 import { runTriad } from '../logic/deadlyTriad.js';
 
 const note =
-  'Each line is a state\'s value estimate over training steps. Any one or two legs: stable. All three: divergence. This is why DQN\'s tricks (replay buffer, frozen target network) target the <em>bootstrapping</em> leg — it\'s the one you can\'t simply remove, so you tame it instead.';
+  'Each line is a state\'s value estimate over training steps. Any one or two legs: stable. All three: divergence. This is why DQN\'s tricks (replay buffer, frozen target network) target the <em>bootstrapping</em> leg — it\'s the one you can\'t simply remove, so you tame it instead. <span class="notice">Schematic: this is the textbook two-state Sutton &amp; Barto / Baird construction that isolates the three ingredients — not a literal DQN run.</span>';
 
 const lab = ref(null);
 

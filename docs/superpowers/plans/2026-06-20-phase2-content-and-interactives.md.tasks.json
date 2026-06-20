@@ -14,7 +14,7 @@
     {
       "id": 2,
       "subject": "Task 2: Softmax/temperature mini-primer (Primer B)",
-      "status": "pending",
+      "status": "completed",
       "blockedBy": [
         1
       ]
@@ -22,7 +22,7 @@
     {
       "id": 3,
       "subject": "Task 3: Dynamics (inertia/Coriolis) visual (Primer A)",
-      "status": "pending",
+      "status": "completed",
       "blockedBy": [
         1
       ]
@@ -30,7 +30,7 @@
     {
       "id": 4,
       "subject": "Task 4: Animated policy-gradient equation-transform (L5)",
-      "status": "pending",
+      "status": "completed",
       "blockedBy": [
         1
       ]
@@ -38,7 +38,7 @@
     {
       "id": 5,
       "subject": "Task 5: Derive-it-yourself Bellman widget (Primer B)",
-      "status": "pending",
+      "status": "completed",
       "blockedBy": [
         1
       ]

@@ -14,7 +14,7 @@ import R from './rllab.js';
 import { evalN } from '../logic/bestOfN.js';
 
 const note =
-  'Green = true success rate of the selected plan; the dashed line is a single sample (N=1) for reference. With a strong verifier, more samples help. With a weak verifier, best-of-N optimizes the <em>verifier\'s</em> mistakes — selecting fluent failures — so the curve bends <em>down</em>. The whole bet of test-time scaling lives in the gap between these two regimes.';
+  'Green = true success rate of the selected plan; the dashed line is a single sample (N=1) for reference. With a strong verifier, more samples help. With a weak verifier, best-of-N optimizes the <em>verifier\'s</em> mistakes — selecting fluent failures — so the curve bends <em>down</em>. The whole bet of test-time scaling lives in the gap between these two regimes. <span class="notice">Schematic toy model: a Monte-Carlo illustration of the selection effect, not measured benchmark numbers.</span>';
 
 const lab = ref(null);
 
