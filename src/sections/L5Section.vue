@@ -72,6 +72,10 @@ for iteration in range(1000):
       <p>Three things to notice, slowly. <strong>One:</strong> the loss line <em>is</em> the boxed equation — autograd computes \(\nabla_\theta \log \pi_\theta\) for you, so "implementing REINFORCE" is just remembering to multiply log-probs by returns before summing. <strong>Two:</strong> <code>env.step()</code> is called, never differentiated, never modeled — the dynamics dropped out of the math, so they drop out of the code. <strong>Three:</strong> the normalize-G line is doing enormous work; delete it and watch training destabilize. That fragility, experienced firsthand, is the honest motivation for everything after §5.4 — baselines, critics, GAE, PPO are increasingly sophisticated replacements for that one crude line. (HW4 has you build exactly this and measure it.)</p>
     </div></details>
 
+    <h4>Trace the derivation: from objective to update rule</h4>
+    <p>Let's trace how the objective becomes the update rule. Every line below is an exact rewrite — no approximation until we sample. Step through to see where the log comes from.</p>
+    <PgTransformWidget />
+
     <h4>Watch a policy learn from reward alone</h4>
     <p>The boxed gradient says: push up the log-probability of actions that led to high return, push down the rest. That's abstract — so let's make it move. Below, the cyan curve is a Gaussian policy \(\pi(a)=\mathcal{N}(\mu,\sigma)\); the orange curve is a reward landscape it cannot see and has never been told. Each press samples a handful of actions, scores them by the reward they receive, and takes one policy-gradient step. Green dots did better than the batch average and get their probability pushed up; red dots did worse and get pushed down — that "compared to average" is the baseline from §5.4, included here because without it the policy barely learns. Watch the distribution crawl uphill and tighten around the best action. This is REINFORCE, made visible.</p>
     <PgWidget />
@@ -214,6 +218,7 @@ import { ref, onMounted, nextTick } from 'vue';
 import Quiz from '../components/Quiz.vue';
 import CompleteBar from '../components/CompleteBar.vue';
 import PgWidget from '../widgets/PgWidget.vue';
+import PgTransformWidget from '../widgets/PgTransformWidget.vue';
 import BaseWidget from '../widgets/BaseWidget.vue';
 import ClipWidget from '../widgets/ClipWidget.vue';
 import GaeWidget from '../widgets/GaeWidget.vue';
