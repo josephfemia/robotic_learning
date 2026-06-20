@@ -41,7 +41,9 @@ onMounted(() => {
    svg.appendChild(R.TX(X(Tmax)-4,Y(daggerRegret(eps,Tmax))-6,'DAgger ~ ε·T',{anchor:'end',fill:R.C.green,size:12,weight:600}));
    svg.appendChild(R.TX((x0+x1)/2,H-10,'task horizon  T  →',{fill:R.C.dim,size:11.5}));
    var yl=R.TX(0,0,'expected regret →',{fill:R.C.ink,size:11.5});yl.setAttribute('transform','translate(16,'+((y0+y1)/2)+') rotate(-90)');svg.appendChild(yl);
-   svg.appendChild(R.TX(bx+(bx>W-210?-8:8),y1+2,'at T='+Tcur+': cloning ≈ '+Tcur+'× worse',{anchor:(bx>W-210?'end':'start'),fill:'#EAF0F8',size:11.5,base:'hanging'}));
+   // Dynamic readout pinned to the clear top-left corner (curves rise toward the
+   // top-RIGHT, so this band stays empty) — was colliding with the BC curve-end label.
+   svg.appendChild(R.TX(x0+6,y1+2,'at T='+Tcur+': cloning ≈ '+Tcur+'× worse',{anchor:'start',fill:'#EAF0F8',size:11.5,base:'hanging'}));
   }
   R.slider(ctr,{label:'per-step error  ε',min:0.01,max:0.2,step:0.01,value:eps,fmt:function(v){return v.toFixed(2);},on:function(v){eps=v;draw();}});
   R.slider(ctr,{label:'horizon  T (marker)',min:10,max:100,step:1,value:Tcur,fmt:function(v){return ''+v;},on:function(v){Tcur=v;draw();}});
