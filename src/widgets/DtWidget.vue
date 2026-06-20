@@ -39,7 +39,9 @@ onMounted(() => {
     svg.appendChild(R.E('line', { x1: X(0), y1: Y(0), x2: X(1.2), y2: Y(1.2), stroke: R.C.dim, 'stroke-width': 1, 'stroke-dasharray': '4 4' }));
     svg.appendChild(R.TX(X(1.12), Y(1.12) - 6, 'ideal (achieved = asked)', { anchor: 'end', fill: R.C.dim, size: 10.5 }));
     svg.appendChild(R.E('line', { x1: X(maxData), y1: y1, x2: X(maxData), y2: y0, stroke: R.C.orange, 'stroke-width': 1.2, 'stroke-dasharray': '5 4' }));
-    svg.appendChild(R.TX(X(maxData), y1 + 2, 'best return in dataset', { fill: R.C.orange, size: 10.5, base: 'hanging' }));
+    // Label the "best return in dataset" line near the x-axis (anchored to its
+    // left) so it never collides with the "ideal" diagonal caption up top.
+    svg.appendChild(R.TX(X(maxData) - 6, y0 - 8, 'best return in dataset', { anchor: 'end', fill: R.C.orange, size: 10.5 }));
     var pin = '', pout = '', i;
     for (i = 0; i <= 120; i++) {
       var r = 1.2 * i / 120, pt = X(r).toFixed(1) + ',' + Y(achievedReturn(r, maxData)).toFixed(1);
