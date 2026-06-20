@@ -42,7 +42,7 @@ DRIFT_FIXME.md               (MODIFY — burn down as items are addressed)
 
 **Files:** Create `docs/superpowers/phase2-link-audit.md`; Modify section `.vue` files to fix bad links.
 
-- [ ] **Step 1:** Enumerate every external link/URL in `src/sections/*.vue` and `src/data/*` (grep `href=`, `http`). Build a table in `phase2-link-audit.md`: URL · where used · purpose.
+- [ ] **Step 1:** Enumerate every external link/URL in `src/sections/*.vue` (the external URLs live in the section templates — ~74 of them; `src/data/` has none). Grep `href=`, `http`. Build a table in `phase2-link-audit.md`: URL · where used · purpose.
 - [ ] **Step 2:** For each, use WebFetch to confirm it **resolves AND its content is the intended resource** (not just HTTP 200). Pay special attention to the brief's flagged risks (§4): the constructed GitHub repo `github.com/mees-robot-learning-course/ethz-course-2026`, homework paths, and specific ETH video IDs.
 - [ ] **Step 3:** For any 404 or wrong-content link: find the correct URL (course page `https://cvg.ethz.ch/lectures/Robot-Learning/`, YouTube playlist `PLPU18BnWYUZJx3_d901-GD6BGpeWwE2vx`, etc.) or remove/soften the claim. Record the fix + new status in the audit.
 - [ ] **Step 4:** Apply fixes to the section files. Run `npm run build`. 
@@ -59,7 +59,7 @@ DRIFT_FIXME.md               (MODIFY — burn down as items are addressed)
 
 - [ ] **Step 1: Write failing tests** for the pure pieces: `easings` map (`linear`, `quadInOut` = the existing curve, `cubicInOut`) each maps 0→0 and 1→1 and is monotonic; `prefersReducedMotion()` honored by a `tween()` wrapper that, when reduced motion is on, invokes `step(1)` once and `done()` without rAF.
 - [ ] **Step 2:** Run `npm test -- useAnimate` → FAIL.
-- [ ] **Step 3:** Implement, preserving the existing `animate(dur, step, done)` signature unchanged (Phase-1 widgets depend on it). Add: `easings`, `tween(dur, {ease, onStep, onDone, reducedMotion})`, `growIn(el)`, `writeOn(pathEl)` (stroke-dasharray/offset), `focusPulse(el)`. All additive — do not change `animate`'s behavior.
+- [ ] **Step 3:** Implement, preserving the existing `animate(dur, step, done)` signature unchanged (Phase-1 widgets depend on it). Add: `easings`, `tween(dur, {ease, onStep, onDone, reducedMotion})`, `growIn(el)`, `writeOn(pathEl)` (stroke-dasharray/offset), `focusPulse(el)`. All additive — do not change `animate`'s behavior. NOTE: there is currently NO JS reduced-motion hook (reduced motion is CSS-only — `styles.css` `@media (prefers-reduced-motion:reduce)`). The new `prefersReducedMotion()` must read that **same** media query (`window.matchMedia('(prefers-reduced-motion: reduce)')`) so the JS and CSS layers stay consistent and never fight.
 - [ ] **Step 4:** Run tests → PASS. `npm run build`.
 - [ ] **Step 5: Commit** — `feat(phase2): extend useAnimate into reusable motion toolkit (+tests)`. Update the `DRIFT_FIXME.md` motion-layer item.
 
@@ -97,7 +97,7 @@ DRIFT_FIXME.md               (MODIFY — burn down as items are addressed)
 
 **Files:** Create `src/widgets/PgTransformWidget.vue` (reuses `src/logic/policyGradient.js`); Modify `src/sections/L5Section.vue`.
 
-- [ ] **Step 1:** (Logic reused/extended in `policyGradient.js` if needed — add a test pinning the identity `∇𝔼[R] = 𝔼[∇log π · R]` on a toy discrete case.)
+- [ ] **Step 1:** Add a **new small pure function** to `src/logic/policyGradient.js` (the existing `policyGradientStep` is a continuous Gaussian update — this is a separate discrete log-derivative demo) + test pinning the identity `∇𝔼[R] = 𝔼[∇log π · R]` on a toy discrete case. TDD: failing test → implement → pass.
 - [ ] **Step 2:** `PgTransformWidget.vue` using the Task-1 motion toolkit: morph `∇_θ 𝔼_τ[R(τ)]` term-by-term into the REINFORCE estimator `𝔼_τ[Σ ∇_θ log π_θ(a_t|s_t) · R(τ)]` — write-on/fade each step with a "next step" control; each stage annotated with the why (log-derivative trick). Unicode/■ glyphs (NOT LaTeX) in the SVG; the surrounding prose keeps KaTeX.
 - [ ] **Step 3:** Wire into L5 near the REINFORCE derivation; reduced-motion shows all stages statically.
 - [ ] **Step 4:** `npm test` + build.
@@ -161,7 +161,7 @@ DRIFT_FIXME.md               (MODIFY — burn down as items are addressed)
 **Files:** Modify `src/assets/styles.css` (recap unification), `src/sections/L12Section.vue` (deepen), `src/components/Sidebar.vue` + `src/App.vue` (a11y).
 
 - [ ] **Step 1: Recap unification** — unify `.recap` and `.recap-box` into one visual treatment in `styles.css`; update any section markup that used the dropped variant. Visual spot-check both old usages render with the unified style.
-- [ ] **Step 2: Deepen L12** (lightest section) — add depth per the approved review backlog (guest-lecture arcs: Dieter Fox, Pieter Abbeel). Keep within scope; commit.
+- [ ] **Step 2: Deepen L12** (lightest section) — add depth **per the Task-7 approved review backlog** (guest-lecture arcs: Dieter Fox, Pieter Abbeel); do not invent depth outside the approved backlog. Commit.
 - [ ] **Step 3: Accessibility** — keyboard navigation for the sidebar nav (arrow/enter), a "next unfinished lecture" affordance, and focus management on section switch. Manual keyboard test + confirm focus-visible styles intact.
 - [ ] **Step 4:** `npm test` + build; reduced-motion sweep on all new widgets.
 - [ ] **Step 5: Commit** — `feat(phase2): recap unification, L12 depth, keyboard a11y`. Burn down matching `DRIFT_FIXME` items.
@@ -172,7 +172,7 @@ DRIFT_FIXME.md               (MODIFY — burn down as items are addressed)
 
 **Files:** Modify widget `.vue` files, highest-traffic first.
 
-- [ ] **Step 1:** Retrofit existing snap-between-states widgets onto the Task-1 toolkit **one at a time**, priority to the most motion-relevant (e.g. `grid`, `mctd`, `gae`, `clip`). Each: add eased transitions / focus-pulse without changing numerics.
+- [ ] **Step 1:** Retrofit existing snap-between-states widgets onto the Task-1 toolkit **one at a time**, priority to the most motion-relevant (e.g. `grid`, `mctd`, `gae`, `clip`). Each: add eased transitions / focus-pulse without changing numerics. EXCLUDE `pg` and `saycan` (already animated — refactoring them carries more regression risk than reward) unless a specific improvement is identified.
 - [ ] **Step 2:** After each widget: `npm test` (numerics unchanged), visual spot-check, reduced-motion check, commit `feat(phase2): motion retrofit — <widget>`.
 - [ ] **Step 3:** `log()` which widgets were retrofitted vs deferred (full-29 coverage is a goal, not a gate — per spec §2A).
 
@@ -180,7 +180,7 @@ DRIFT_FIXME.md               (MODIFY — burn down as items are addressed)
 
 ## Task 11: Final regression sweep + acceptance
 
-- [ ] **Step 1:** `npm test` all green (Phase-1 + new logic cores); `npm run build` clean.
+- [ ] **Step 1:** `npm test` all green — use the **current reported total as the baseline** (Phase-1 baseline is whatever `npm test` reports now; new logic cores add to it — do not hardcode a number); `npm run build` clean.
 - [ ] **Step 2:** Drift harness as **regression detector**: untouched chrome/sections unchanged; changed regions match the approved backlogs (intended changes only).
 - [ ] **Step 3:** Links: zero known 404s; audit doc current.
 - [ ] **Step 4:** Accessibility: keyboard-navigable; reduced-motion paths work.
