@@ -39,7 +39,9 @@ onMounted(() => {
   if (!stage) return;
 
   // --- SVG layout ---
-  const W = 600, H = 420;
+  // Width gives the arm its own left zone (max reach ≈ ox+202 ≈ 357px) clear of
+  // the torque-bar panel (starts at BAR_X=400), so nothing overlaps the drawing.
+  const W = 720, H = 420;
   const svg = R.SVG(stage, W, H);
 
   // Arm drawing geometry (pixel scale — independent of SI units)
@@ -49,8 +51,8 @@ onMounted(() => {
   const ox = 155, oy = H * 0.52;  // shoulder origin
 
   // Bar chart layout for torque contributions
-  const BAR_X = 310;    // left edge of bar panel
-  const BAR_W = 260;    // panel width
+  const BAR_X = 400;    // left edge of bar panel (clear of arm's ≈357px reach)
+  const BAR_W = 300;    // panel width (400–700)
   const BAR_MAX_H = 80; // max bar height (px) for normalised torques
   const TAU_SCALE = 15; // N·m per pixel (so 12 N·m → 12/15 = 0.8 * BAR_MAX_H)
 
@@ -103,11 +105,9 @@ onMounted(() => {
     drawArc(svg, ox, oy, 28, 0, q1, R.C.orange, 'q₁');
     drawArc(svg, p.x1, p.y1, 22, q1, q1 + q2, COL_INERTIA, 'q₂');
 
-    // Labels
+    // Labels ("end-effector" is identified by the legend swatch, so no inline
+    // text label on the arm tip — avoids text overlapping the drawing/panel).
     svg.appendChild(R.TX(ox - 16, oy + 4, 'base', { anchor: 'end', fill: R.C.dim, size: 11 }));
-    svg.appendChild(R.TX(p.x2 + 12, p.y2 - 10, 'end-effector', {
-      anchor: 'start', fill: R.C.green, size: 11, weight: 600,
-    }));
 
     // Speed indicator arrows near joints (grow with velocity)
     if (Math.abs(qd1) > 0.05) drawVArrow(svg, ox, oy - 20, qd1, COL_CORIOLIS);

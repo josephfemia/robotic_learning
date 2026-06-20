@@ -104,10 +104,13 @@ onMounted(() => {
       anchor: 'end', fill: R.C.cyan, size: 12, weight: 600, base: 'hanging',
     }));
 
-    // "probability" y-axis title
-    svg.appendChild(R.TX(12, (y0 + y1) / 2, 'probability', {
+    // "probability" y-axis title — rotated vertical in the left margin so it
+    // never overlaps the 0 / 0.5 / 1 tick labels at x0-8.
+    const yTitle = R.TX(16, (y0 + y1) / 2, 'probability', {
       fill: R.C.dim, size: 11, anchor: 'middle',
-    }));
+    });
+    yTitle.setAttribute('transform', `rotate(-90 16 ${(y0 + y1) / 2})`);
+    svg.appendChild(yTitle);
   }
 
   // ── Animation ───────────────────────────────────────────────────────────
