@@ -11,6 +11,7 @@
 import { onMounted, ref } from 'vue';
 import Lab from '../components/Lab.vue';
 import R from './rllab.js';
+import { tween } from '../composables/useAnimate.js';
 import { RETURNS, SCORES, MEAN_RETURN, OPTIMAL_BASELINE, gradientStats } from '../logic/baseline.js';
 
 const note =
@@ -43,7 +44,14 @@ onMounted(() => {
   }
 
   var sld = R.slider(ctr, { label: 'baseline  b', min: 0, max: 1.2, step: 0.01, value: b, fmt: function (v) { return v.toFixed(2); }, on: function (v) { b = v; draw(); } });
-  R.btn(ctr, 'Set b = mean return', 'primary', function () { b = MEAN_RETURN; sld.set(b); draw(); });
+  // Discrete jump → ease the baseline so the bars settle smoothly to the optimum.
+  R.btn(ctr, 'Set b = mean return', 'primary', function () {
+    var from = b, to = MEAN_RETURN;
+    tween(450, {
+      onStep(e) { b = from + (to - from) * e; sld.set(b); draw(); },
+      onDone() { b = to; sld.set(b); draw(); },
+    });
+  });
   R.legend(stage, [[R.C.green, 'pushes this action ↑'], [R.C.red, 'pushes this action ↓']]);
   draw();
 });

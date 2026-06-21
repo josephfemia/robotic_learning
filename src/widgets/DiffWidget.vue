@@ -43,6 +43,18 @@ onMounted(() => {
   function CX(x) { return Wc / 2 + x * S; }
   function CY(y) { return Hc / 2 + y * S; }
 
+  // Draw a dark backing pill behind a label so it stays legible over dots/grid.
+  // align matches g.textAlign ('left' | 'center'); baseline of text is at y.
+  function label(text, x, y, color, align, size) {
+    g.font = (size || 12) + 'px IBM Plex Mono, monospace';
+    var w = g.measureText(text).width, pad = 4, h = (size || 12) + 4;
+    var bx = align === 'center' ? x - w / 2 - pad : x - pad;
+    g.fillStyle = 'rgba(15,20,34,0.78)';
+    g.fillRect(bx, y - h + 3, w + pad * 2, h);
+    g.fillStyle = color; g.textAlign = align;
+    g.fillText(text, x, y);
+  }
+
   function reset() {
     pts = [];
     for (var i = 0; i < N; i++) pts.push({ x: R.randn() * 1.3, y: R.randn() * 1.0 });
@@ -57,21 +69,21 @@ onMounted(() => {
     var gx, gy;
     for (gx = -2; gx <= 2; gx++) { g.beginPath(); g.moveTo(CX(gx), 20); g.lineTo(CX(gx), Hc - 20); g.stroke(); }
     for (gy = -1; gy <= 1; gy++) { g.beginPath(); g.moveTo(40, CY(gy)); g.lineTo(Wc - 40, CY(gy)); g.stroke(); }
-    [m1, m2].forEach(function (m, idx) {
+    [m1, m2].forEach(function (m) {
       g.beginPath(); g.arc(CX(m[0]), CY(m[1]), S * 0.5, 0, 2 * Math.PI);
       g.strokeStyle = 'rgba(54,197,208,0.5)'; g.setLineDash([4, 4]); g.lineWidth = 1.5; g.stroke(); g.setLineDash([]);
-      g.fillStyle = R.C.cyan; g.font = '12px IBM Plex Mono, monospace'; g.textAlign = 'center';
-      g.fillText(idx === 0 ? '"go left"' : '"go right"', CX(m[0]), CY(m[1]) - S * 0.5 - 10);
     });
     for (var i = 0; i < pts.length; i++) {
       var p = pts[i];
       g.beginPath(); g.arc(CX(p.x), CY(p.y), 2.6, 0, 2 * Math.PI);
       g.fillStyle = step === 0 ? 'rgba(138,147,163,0.9)' : 'rgba(54,197,208,0.9)'; g.fill();
     }
-    g.fillStyle = '#EAF0F8'; g.textAlign = 'left'; g.font = '12px IBM Plex Mono, monospace';
-    g.fillText(step === 0 ? 'pure noise  (step 0)' : 'denoising step ' + step, 40, 24);
-    g.fillStyle = '#8A93A3'; g.textAlign = 'center';
-    g.fillText('action dimension 1  →', Wc / 2, Hc - 8);
+    // Mode labels last, with backing, so the dots beneath never break them up.
+    [m1, m2].forEach(function (m, idx) {
+      label(idx === 0 ? '"go left"' : '"go right"', CX(m[0]), CY(m[1]) - S * 0.5 - 10, R.C.cyan, 'center', 12);
+    });
+    label(step === 0 ? 'pure noise  (step 0)' : 'denoising step ' + step, 40, 24, '#EAF0F8', 'left', 12);
+    label('action dimension 1  →', Wc / 2, Hc - 8, '#8A93A3', 'center', 12);
   }
 
   function dstep() {

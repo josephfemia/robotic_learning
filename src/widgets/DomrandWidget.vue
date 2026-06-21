@@ -25,7 +25,7 @@ onMounted(() => {
 
   // Ported VERBATIM from the domrand IIFE (reference lines 2717–2745).
   // Numeric functions from logic/domainRandomization.js (vitest-pinned).
-  var W = 700, H = 320, padL = 54, padR = 24, padT = 30, padB = 52, fr = 1.0, wdt = 0.25, f0 = 0.5, f1 = 1.5, nom = 1.0;
+  var W = 700, H = 320, padL = 54, padR = 24, padT = 30, padB = 64, fr = 1.0, wdt = 0.25, f0 = 0.5, f1 = 1.5, nom = 1.0;
   var svg = R.SVG(stage, W, H);
 
   function X(f) { return padL + ((f - f0) / (f1 - f0)) * (W - padL - padR); }
@@ -46,17 +46,23 @@ onMounted(() => {
     svg.appendChild(R.E('polyline', { points: pA, fill: 'none', stroke: R.C.red, 'stroke-width': 2.5 }));
     svg.appendChild(R.E('polyline', { points: pB, fill: 'none', stroke: R.C.green, 'stroke-width': 2.5 }));
     svg.appendChild(R.E('line', { x1: X(nom), y1: y1, x2: X(nom), y2: y0, stroke: R.C.dim, 'stroke-width': 1, 'stroke-dasharray': '3 3' }));
-    svg.appendChild(R.TX(X(nom), y0 + 16, 'trained here', { fill: R.C.dim, size: 10.5 }));
     var dx = X(fr);
+    // When the deploy line sits near nominal, stack the two ground labels so they never collide.
+    var near = Math.abs(dx - X(nom)) < 46;
+    svg.appendChild(R.TX(X(nom), y0 + 15, 'trained here', { fill: R.C.dim, size: 10.5, base: 'hanging' }));
     svg.appendChild(R.E('line', { x1: dx, y1: y1, x2: dx, y2: y0, stroke: '#EAF0F8', 'stroke-width': 1.5 }));
     svg.appendChild(R.E('circle', { cx: dx, cy: Y(noDR(fr, nom)), r: 5, fill: R.C.red }));
     svg.appendChild(R.E('circle', { cx: dx, cy: Y(withDR(fr, nom, wdt)), r: 5, fill: R.C.green }));
-    svg.appendChild(R.TX(dx, y0 + 33, 'real friction', { fill: '#EAF0F8', size: 10.5 }));
+    // Keep the moving "real friction" caption on-canvas: flip its anchor near the edges.
+    var rfAnchor = dx > x1 - 60 ? 'end' : (dx < x0 + 60 ? 'start' : 'middle');
+    var rfX = dx + (rfAnchor === 'end' ? 6 : rfAnchor === 'start' ? -6 : 0);
+    svg.appendChild(R.TX(rfX, y0 + (near ? 30 : 15), 'real friction', { anchor: rfAnchor, fill: '#EAF0F8', size: 10.5, base: 'hanging' }));
     svg.appendChild(R.TX(x1, Y(noDR(f1, nom)) + 2, 'trained at nominal only', { anchor: 'end', fill: R.C.red, size: 11.5, weight: 600, base: 'hanging' }));
     svg.appendChild(R.TX(x1, Y(0.9) - 8, 'domain-randomized', { anchor: 'end', fill: R.C.green, size: 11.5, weight: 600 }));
     svg.appendChild(R.TX(x0, y1 - 4, 'deployment success vs real-world friction', { anchor: 'start', fill: R.C.ink, size: 12, base: 'hanging' }));
-    svg.appendChild(R.TX(W / 2, H - 12, 'simulation parameter at deployment (friction ×nominal)  →', { fill: R.C.dim, size: 11.5 }));
-    svg.appendChild(R.TX(dx + (dx > W - 200 ? -8 : 8), y1 + 14, 'DR ' + (withDR(fr, nom, wdt) * 100).toFixed(0) + '%  vs  no-DR ' + (noDR(fr, nom) * 100).toFixed(0) + '%', { anchor: (dx > W - 200 ? 'end' : 'start'), fill: '#EAF0F8', size: 11.5, base: 'hanging' }));
+    svg.appendChild(R.TX(W / 2, H - 8, 'simulation parameter at deployment (friction ×nominal)  →', { fill: R.C.dim, size: 11.5 }));
+    // DR vs no-DR readout pinned to the empty bottom-left corner (curves sit near zero there).
+    svg.appendChild(R.TX(x0 + 4, y0 - 8, 'DR ' + (withDR(fr, nom, wdt) * 100).toFixed(0) + '%  vs  no-DR ' + (noDR(fr, nom) * 100).toFixed(0) + '%', { anchor: 'start', fill: '#EAF0F8', size: 11.5 }));
   }
 
   R.slider(ctr, { label: 'real friction at deploy', min: 0.5, max: 1.5, step: 0.01, value: fr, fmt: function (v) { return v.toFixed(2); }, on: function (v) { fr = v; draw(); } });
