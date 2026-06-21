@@ -50,7 +50,7 @@
        query expert for labels a* at those states     ← expert corrects
        D ← D ∪ {(s, a*)};  π_{k+1} ← train on D       ← aggregate, refit</pre>
     <div class="figcap">FIG. 3.1 — The learner generates the states; the expert supplies the answers. Distribution mismatch dissolves by construction.</div></div>
-    <p>Under a no-regret online-learning analysis (each round is an online classification problem on the evolving distribution), DAgger achieves regret <strong>linear</strong> in horizon, \(O(\epsilon T)\) (up to recoverability constants) — the best you could hope for. Its practical sin: it needs an expert <em>on call</em> to label arbitrary mid-rollout states, which is expensive and awkward for humans (labeling "what would I have done here?" out of context is hard). Real systems often use softer cousins: human <em>interventions</em> during rollouts (take over when it drifts, log the corrections) — you'll meet this as HG-DAgger-style data collection and again in HIL-SERL (L4 papers).</p>
+    <p>Under a no-regret online-learning analysis (each round is an online classification problem on the evolving distribution), DAgger achieves a performance gap <strong>linear</strong> in the horizon, \(O(\epsilon T)\) (up to recoverability constants; its per-round online-learning regret \(\to 0\)) — the best you could hope for. Its practical sin: it needs an expert <em>on call</em> to label arbitrary mid-rollout states, which is expensive and awkward for humans (labeling "what would I have done here?" out of context is hard). Real systems often use softer cousins: human <em>interventions</em> during rollouts (take over when it drifts, log the corrections) — you'll meet this as HG-DAgger-style data collection and again in HIL-SERL (L4 papers).</p>
 
     <h3><span class="knum">3.4</span>Two subtler failure modes</h3>
     <p><strong>Multimodality.</strong> Human demos are inconsistent: facing an obstacle, half the demos go left, half right. A unimodal policy (Gaussian / MSE regression) learns the <em>mean</em> — straight into the obstacle. Averaging valid answers produces an invalid one. Remember this as the founding problem of Lecture 6: diffusion and energy-based policies exist precisely to represent multimodal \(p(a|s)\).</p>
@@ -89,7 +89,7 @@
       <div class="res-head">Lecture 3 resources</div>
       <ul>
         <li><span class="rtag">Slides</span><a href="https://cvg.ethz.ch/lectures/Robot-Learning/lectures/lecture3_imitation.pdf" target="_blank" rel="noopener">lecture3_imitation.pdf</a></li>
-        <li><span class="rtag">Recording</span><a href="https://video.ethz.ch/lectures/d-infk/2026/spring/263-5911-00L/v/JsiQ5TXg7TE" target="_blank" rel="noopener">ETH video portal — Lecture 3</a></li>
+        <li><span class="rtag">Recording</span><a href="https://youtu.be/Ef4R5s1LqoQ" target="_blank" rel="noopener">YouTube recording — Lecture 3</a></li>
         <li><span class="rtag">Guest</span><a href="https://youtu.be/qvTP6T5oq1w" target="_blank" rel="noopener">Danfei Xu (Georgia Tech) — guest spotlight</a></li>
         <li><span class="rtag">Homework</span><a href="https://github.com/mees-robot-learning-course/ethz-course-2026/tree/main/hw3_imitation_learning" target="_blank" rel="noopener">HW3: Imitation Learning</a> — you will <em>see</em> compounding errors in your own rollouts; nothing teaches §3.2 better</li>
       </ul>

@@ -42,7 +42,8 @@ onMounted(() => {
     for (var i = 0; i < disp.length; i++) {
       var cy = y0 + i * rowh + rowh / 2;
       var top = (i === 0);
-      svg.appendChild(R.TX(x0 - 12, cy, disp[i].n + (top ? '  ← chosen' : ''), { anchor: 'end', fill: (top ? R.C.green : R.C.ink), size: 12, weight: (top ? 600 : 400), base: 'middle' }));
+      svg.appendChild(R.TX(x0 - 12, cy, disp[i].n, { anchor: 'end', fill: (top ? R.C.green : R.C.ink), size: 12, weight: (top ? 600 : 400), base: 'middle' }));
+      if (top) svg.appendChild(R.TX(x0 - 12, cy + 12, '← chosen', { anchor: 'end', fill: R.C.green, size: 10, weight: 600, base: 'middle' }));
       var bw = (x1 - x0) * disp[i].disp / mx;
       svg.appendChild(R.E('rect', { x: x0, y: cy - 9, width: Math.max(1, bw), height: 18, rx: 3, fill: (top ? R.C.green : R.C.cyan), opacity: 0.85 }));
       svg.appendChild(R.TX(x0 + bw + 6, cy, disp[i].disp.toFixed(2), { anchor: 'start', fill: R.C.dim, size: 11, base: 'middle' }));

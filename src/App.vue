@@ -50,7 +50,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import TopBar from './components/TopBar.vue';
 import Sidebar from './components/Sidebar.vue';
 import { ALL_NAV_ITEMS, TITLES } from './data/nav.js';
@@ -93,12 +93,12 @@ const sectionRegistry = {
 };
 
 // ── Reactive state ────────────────────────────────────────────────────────────
-// Faithful to the original: the start *content* is statically visible on load,
-// but NO nav button is highlighted until the user navigates. So we decouple the
-// visible section (defaults to 'start') from the nav-active highlight (empty on
-// load). See DRIFT_FIXME.md — the original never initializes the active nav state.
+// Phase 2 fix (DRIFT_FIXME #1): the original never highlighted the current nav
+// item on load (it showed start content with no active nav button — an oversight).
+// We now initialize the highlight to the visible section so "Start here" is marked
+// active from the first paint, matching the section actually shown.
 const visibleId = ref('start');
-const navActiveId = ref('');
+const navActiveId = ref('start');
 const mobileOpen = ref(false);
 
 // Derived topbar label — original's #whereLabel is statically "Start here" on load
@@ -112,6 +112,15 @@ function show(id) {
   navActiveId.value = id;
   closeDrawer();
   window.scrollTo(0, 0);
+  // Move keyboard/screen-reader focus into the new section's heading so users
+  // land in the freshly shown content rather than staying on the nav button.
+  nextTick(() => {
+    const heading = document.querySelector(`#${id} .lecture-head h2`);
+    if (heading) {
+      heading.setAttribute('tabindex', '-1');
+      heading.focus({ preventScroll: true });
+    }
+  });
 }
 
 function closeDrawer() {

@@ -252,8 +252,8 @@
   .callout.miscon .co-label{color:var(--signal)}
   .callout.miscon ul{margin:6px 0 0;padding-left:20px}
   .callout.miscon li{margin:5px 0;font-size:14px;line-height:1.5}
-  .recap{display:block;margin:7px 0 0;font-size:14px;color:var(--cobalt-dark);line-height:1.55}
-  .recap::before{content:"In words — ";font-weight:600;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--signal)}
+  /* Recaps unified to a single treatment: the boxed "IN WORDS" style.
+     (The former inline `.recap` variant was migrated to `.recap-box`.) */
   .recap-box{font-size:14px;color:var(--muted);margin:4px 0 14px;padding:8px 12px;border-left:3px solid var(--cobalt);background:rgba(39,66,204,0.04);line-height:1.55}
   .recap-box b{color:var(--cobalt);font-family:var(--mono);font-size:11px;letter-spacing:.08em;font-weight:600}
   .xref{color:var(--cobalt);cursor:pointer;border-bottom:1px dotted var(--cobalt);font-weight:600}

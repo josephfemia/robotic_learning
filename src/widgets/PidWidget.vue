@@ -12,6 +12,7 @@ import { onMounted, ref } from 'vue';
 import Lab from '../components/Lab.vue';
 import R from './rllab.js';
 import { sim, metrics } from '../logic/pid.js';
+import { tween } from '../composables/useAnimate.js';
 
 const note =
   '\\(K_p\\) = how hard to push on the current error (fast but oscillatory), \\(K_d\\) = push against the rate of change (damping), \\(K_i\\) = accumulate past error (kills the final offset). The dashed line is the target; the curve is the response over time. There\'s no single right answer — only tradeoffs, which is exactly why the next step is to make it an optimization (LQR).';
@@ -26,13 +27,18 @@ onMounted(() => {
   // Ported verbatim from the pid IIFE (reference lines 3237–3264).
   // Numeric core in logic/pid.js (vitest-pinned).
   var Kp = 6, Ki = 0, Kd = 2, W = 700, H = 320, svg = R.SVG(stage, W, H);
+  // `disp` holds the currently-shown trace so discrete changes (Reset) can ease
+  // between curves rather than snapping. Slider drags still draw instantly.
+  var disp = sim(Kp, Ki, Kd);
 
-  function draw() {
+  // Plot geometry. y1 (plot top) is pushed below the header text band so even a
+  // value pinned at hi=2.0 never reaches the "response x(t)…" header line.
+  var x0 = 46, x1 = W - 24, y0 = H - 44, y1 = 46, h = y0 - y1;
+  var lo = -0.4, hi = 2.0;
+  function Y(v) { return y0 - h * ((v - lo) / (hi - lo)); }
+
+  function drawTrace(xs) {
     R.clr(svg);
-    var xs = sim(Kp, Ki, Kd);
-    var x0 = 46, x1 = W - 24, y0 = H - 44, y1 = 28, h = y0 - y1;
-    var lo = -0.4, hi = 2.0;
-    function Y(v) { return y0 - h * ((v - lo) / (hi - lo)); }
     // target line
     svg.appendChild(R.E('line', { x1: x0, y1: Y(1), x2: x1, y2: Y(1), stroke: R.C.green, 'stroke-width': 1.4, 'stroke-dasharray': '6 4' }));
     svg.appendChild(R.TX(x1, Y(1) - 6, 'target', { anchor: 'end', fill: R.C.green, size: 11 }));
@@ -50,13 +56,39 @@ onMounted(() => {
     svg.appendChild(R.TX(W / 2, H - 10, 'time →', { fill: R.C.dim, size: 11 }));
   }
 
+  // Slider drags: recompute and draw instantly (kept responsive).
+  function draw() { disp = sim(Kp, Ki, Kd); drawTrace(disp); }
+
+  // Discrete change (Reset): ease the displayed curve from its current shape to
+  // the target shape so the response morphs rather than snapping.
+  function animateTo(Kp2, Ki2, Kd2) {
+    var from = disp;
+    var to = sim(Kp2, Ki2, Kd2);
+    tween(420, {
+      onStep(e) {
+        var cur = new Array(to.length);
+        for (var i = 0; i < to.length; i++) cur[i] = from[i] + (to[i] - from[i]) * e;
+        disp = cur;
+        drawTrace(cur);
+      },
+      onDone() { disp = to; drawTrace(to); },
+    });
+  }
+
   R.slider(ctr, { label: 'Kp  (proportional)', min: 0, max: 30, step: 0.5, value: Kp, fmt: function (v) { return v.toFixed(1); }, on: function (v) { Kp = v; draw(); } });
   R.slider(ctr, { label: 'Ki  (integral)', min: 0, max: 12, step: 0.25, value: Ki, fmt: function (v) { return v.toFixed(2); }, on: function (v) { Ki = v; draw(); } });
   R.slider(ctr, { label: 'Kd  (derivative)', min: 0, max: 10, step: 0.25, value: Kd, fmt: function (v) { return v.toFixed(2); }, on: function (v) { Kd = v; draw(); } });
   R.btn(ctr, 'Reset gains', null, function () {
     Kp = 6; Ki = 0; Kd = 2;
-    ctr.querySelectorAll('input').forEach(function (inp, i) { inp.value = [6, 0, 2][i]; inp.dispatchEvent(new Event('input')); });
+    ctr.querySelectorAll('input').forEach(function (inp, i) {
+      var nv = [6, 0, 2][i];
+      inp.value = nv;
+      // update the slider's value label without triggering its instant `on` redraw
+      var span = inp.parentNode.querySelector('.val');
+      if (span) span.textContent = [Kp.toFixed(1), Ki.toFixed(2), Kd.toFixed(2)][i];
+    });
+    animateTo(6, 0, 2);
   });
-  draw();
+  drawTrace(disp);
 });
 </script>

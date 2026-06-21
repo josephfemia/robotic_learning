@@ -11,6 +11,7 @@
 import { onMounted, ref } from 'vue';
 import Lab from '../components/Lab.vue';
 import R from './rllab.js';
+import { tween } from '../composables/useAnimate.js';
 import { forwardKinematics } from '../logic/arm.js';
 
 const note =
@@ -26,14 +27,14 @@ onMounted(() => {
   // Ported verbatim from the arm IIFE (reference lines 3206–3236).
   // FK math delegated to logic/arm.js (forwardKinematics), which is
   // character-identical to the inline fk() in the original.
-  var W = 560, H = 380, svg = R.SVG(stage, W, H);
-  var th1 = 0.7, th2 = 0.8, ox = W / 2, oy = H * 0.62, workspace = [];
+  var W = 560, H = 470, svg = R.SVG(stage, W, H);
+  var th1 = 0.7, th2 = 0.8, ox = W / 2, oy = H * 0.5, workspace = [], traceGrow = 1;
 
   function draw() {
     R.clr(svg);
-    // workspace points
+    // workspace points (fade in when freshly traced)
     for (var i = 0; i < workspace.length; i++) {
-      svg.appendChild(R.E('circle', { cx: workspace[i][0], cy: workspace[i][1], r: 1.5, fill: R.C.violet, opacity: 0.32 }));
+      svg.appendChild(R.E('circle', { cx: workspace[i][0], cy: workspace[i][1], r: 1.5, fill: R.C.violet, opacity: 0.32 * traceGrow }));
     }
     var p = forwardKinematics(ox, oy, th1, th2);
     // reach circle hint (max reach)
@@ -60,9 +61,10 @@ onMounted(() => {
         workspace.push([p.x2, p.y2]);
       }
     }
-    draw();
+    traceGrow = 0;
+    tween(500, { onStep: function (e) { traceGrow = e; draw(); } });
   });
-  R.btn(ctr, 'Clear', null, function() { workspace = []; draw(); });
+  R.btn(ctr, 'Clear', null, function() { workspace = []; traceGrow = 1; draw(); });
   R.legend(stage, [[R.C.cyan, 'link 1'], [R.C.orange, 'link 2'], [R.C.green, 'end-effector'], [R.C.violet, 'reachable workspace']]);
   draw();
 });

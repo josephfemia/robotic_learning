@@ -36,8 +36,13 @@
     <p>The abstract phrase "the policy outputs joint angles \(q\)" becomes obvious the moment you see it. Below is a 2-joint arm. You don't move the hand directly — you set the two <em>angles</em>, and forward kinematics decides where the hand lands. Sweep them and watch the reachable workspace fill in. Two things to notice: most hand positions are reachable by <em>two</em> different angle combinations (that's why inverse kinematics has multiple solutions), and a small change in angle near full extension moves the hand a lot (that's the Jacobian stretching). This is the space every learned policy is really acting in.</p>
     <ArmWidget />
 
+    <p>Kinematics ignored forces; <strong>dynamics</strong> reintroduces them. Newton's law for an arm — mass &times; acceleration = forces — takes this matrix form:</p>
     <p>$$M(q)\,\ddot q + C(q,\dot q)\,\dot q + g(q) = \tau$$</p>
     <p>\(M\) is the configuration-dependent inertia matrix, \(C\) collects Coriolis/centrifugal terms, \(g\) is gravity, and \(\tau\) is the vector of motor torques you command. If you knew this model perfectly, control would be (almost) calculus. The catch: the moment the robot <em>touches anything</em> — a mug, the floor, a door handle — you add contact forces and friction, which are discontinuous, hard to measure, and brutally hard to model. <strong>Contact is the single biggest reason manipulation resists classical methods and motivates learning.</strong></p>
+
+    <h4>Dynamics: three forces every motor must overcome</h4>
+    <p>The arm widget shows where the hand ends up — but not why moving it is hard. Once joints are in motion, a robot must fight three torque demands at once: inertia from the mass it carries, Coriolis coupling between the joints, and the ever-present pull of gravity.</p>
+    <DynamicsWidget />
 
     <h4>The control stack: two loops at two speeds</h4>
     <p>Real systems are layered. A <strong>low-level controller</strong> runs at 100–1000 Hz keeping motors at commanded targets — usually some flavor of <strong>PID</strong> (proportional–integral–derivative: push back proportionally to error, its integral, and its derivative). On top, the <strong>policy</strong> — the learned part — runs at 1–60 Hz, outputting either target joint positions, end-effector poses, or raw torques. When a paper says the policy outputs "actions," ask: <em>actions at which level of this stack?</em> It changes the difficulty of the learning problem enormously.</p>
@@ -60,6 +65,10 @@
     <p>$$V^\pi(s) = \mathbb{E}_{a\sim\pi,\; s'\sim P}\big[\, r(s,a) + \gamma\, V^\pi(s') \,\big]$$</p>
     <p>Memorize the shape: <em>value now = expected immediate reward + discounted expected value next</em>. You will see it forty times in this course wearing different costumes.</p>
 
+    <h4>Build the Bellman equation from scratch</h4>
+    <p>Before we take that equation as given, build it. Below is a tiny 4-state world: only the last state pays a reward. Click a state to ask 'given what I think my successors are worth, what am I worth?' — repeat, and the values stabilize into exactly the Bellman equation.</p>
+    <BellmanDeriveWidget />
+
     <h4>The three families of solutions</h4>
     <ul>
       <li><strong>Value-based</strong> (L4): learn \(Q\), then act by \(\arg\max_a Q(s,a)\). The policy is implicit.</li>
@@ -67,6 +76,10 @@
       <li><strong>Model-based</strong> (L8): learn the dynamics \(P(s'|s,a)\) itself, then plan or train inside the learned model.</li>
     </ul>
     <p>Two distinctions you must keep straight from day one. <strong>On-policy vs. off-policy</strong>: does the algorithm require fresh data from the <em>current</em> policy (PPO: yes), or can it learn from any data, including old or other-policy data (Q-learning, SAC: yes, via a replay buffer)? <strong>Exploration vs. exploitation</strong>: unlike supervised learning, the agent chooses its own training distribution — act greedily too early and you never see the data that would teach you better.</p>
+
+    <h4>Action selection: softmax and the explore–exploit dial</h4>
+    <p>Once an agent has scores for each action, it still needs a rule for turning them into a choice. Softmax with a temperature parameter is the simplest such rule — and the temperature knob exposes the explore-vs-exploit tension every RL method must navigate.</p>
+    <SoftmaxWidget />
 
     <details class="dive"><summary>Going deeper: partial observability (POMDPs) — why robots don't quite live in MDPs</summary><div class="dive-body">
       <p>The MDP assumes the agent sees the true state \(s_t\). A camera-driven robot sees an <em>observation</em> \(o_t\) (pixels) that incompletely reflects state — occlusions, unseen object properties like mass or friction, things behind the robot. Formally this is a <strong>POMDP</strong>, where the optimal agent maintains a <em>belief</em> \(b_t = p(s_t \mid o_{1:t}, a_{1:t-1})\) — a posterior over states given history. Exact belief tracking is intractable, so in practice deep RL approximates it by feeding the policy a <em>history</em>: stacked recent frames, a recurrent network's hidden state, or a transformer's context window. When you reach Lecture 7 (sequence models) and Lecture 8 (world models with latent states), recognize them as learned, approximate belief states. The math of this course is written for MDPs; the engineering is forever managing the gap.</p>
@@ -79,6 +92,7 @@
     <h3><span class="knum">PART C</span>The actuarial Rosetta stone</h3>
     <p>Here's the part nobody will tell you in lecture: <strong>you have been doing dynamic programming on Markov processes with discounting your entire actuarial career.</strong> The vocabulary differs; the mathematics is the same. The clearest example — compare the actuarial recursion for a whole-life annuity-due with the Bellman equation:</p>
     <p>$$\ddot a_x = 1 + v\, p_x\, \ddot a_{x+1} \qquad\Longleftrightarrow\qquad V^\pi(s) = r(s) + \gamma \sum_{s'} P(s'|s)\, V^\pi(s')$$</p>
+    <p>The right-hand form is the fixed-policy, state-reward special case of the Bellman equation — reward depends only on state and the policy is held fixed — chosen precisely because its structure mirrors the annuity recursion exactly. It differs from Part B's general form \(V^\pi(s)=\mathbb{E}[r(s,a)+\gamma V^\pi(s')]\), which takes an explicit expectation over actions drawn from \(\pi\); once the policy is fixed and rewards depend only on state, that expectation collapses to the deterministic sum here.</p>
     <p>Read the left side as an RL problem: the "state" is being alive at age \(x\); the "reward" is the payment of 1 each period; the "discount factor" is \(v = 1/(1+i)\); the "transition" is surviving to age \(x+1\) with probability \(p_x\); death is an absorbing terminal state with value 0. An annuity value <em>is</em> a value function. A reserve <em>is</em> a value function. You have computed \(V^\pi\) thousands of times.</p>
 
     <div class="bridge">
@@ -116,6 +130,9 @@
 import { ref, onMounted, nextTick } from 'vue';
 import DiscWidget from '../widgets/DiscWidget.vue';
 import ArmWidget from '../widgets/ArmWidget.vue';
+import DynamicsWidget from '../widgets/DynamicsWidget.vue';
+import SoftmaxWidget from '../widgets/SoftmaxWidget.vue';
+import BellmanDeriveWidget from '../widgets/BellmanDeriveWidget.vue';
 import Quiz from '../components/Quiz.vue';
 import CompleteBar from '../components/CompleteBar.vue';
 import { renderMath } from '../composables/useKaTeX.js';

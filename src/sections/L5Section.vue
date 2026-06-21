@@ -31,13 +31,14 @@
     <p>$$\nabla_\theta J = \int \nabla_\theta P(\tau;\theta)\, R(\tau)\, d\tau$$</p>
     <p>This isn't yet an expectation, so we can't sample it. The <strong>log-derivative trick</strong> — multiply and divide by \(P(\tau;\theta)\), then use \(\nabla \log f = \nabla f / f\):</p>
     <p>$$\nabla_\theta P(\tau;\theta) = P(\tau;\theta)\,\nabla_\theta \log P(\tau;\theta)$$</p>
+    <p>Concretely, \(\int \nabla_\theta P(\tau;\theta)\,R\,d\tau = \int P(\tau;\theta)\,\frac{\nabla_\theta P(\tau;\theta)}{P(\tau;\theta)}\,R\,d\tau = \int P(\tau;\theta)\,\nabla_\theta \log P(\tau;\theta)\,R\,d\tau\) — and an integral of \(P(\tau;\theta)\times(\cdots)\) is exactly an expectation over \(\tau\sim\pi_\theta\).</p>
     <p>$$\Rightarrow\quad \nabla_\theta J = \mathbb E_{\tau\sim\pi_\theta}\big[\nabla_\theta \log P(\tau;\theta)\; R(\tau)\big]$$</p>
-    <p class="recap">that one trick converted "the gradient of an integral" (can't sample) into "the average of a gradient × return" (just run the policy and average). Everything after is figuring out what \(\nabla\log P\) simplifies to.</p>
+    <p class="recap-box"><b>IN WORDS</b> &nbsp;that one trick converted "the gradient of an integral" (can't sample) into "the average of a gradient × return" (just run the policy and average). Everything after is figuring out what \(\nabla\log P\) simplifies to.</p>
     <p>Now expand the trajectory probability — it factorizes by the Markov chain structure:</p>
     <p>$$P(\tau;\theta) = p(s_0)\prod_{t} \pi_\theta(a_t|s_t)\; p(s_{t+1}|s_t,a_t)$$</p>
     <p>Take the log (products → sums) and then \(\nabla_\theta\). The initial distribution and the dynamics <strong>do not depend on \(\theta\)</strong> — their terms vanish:</p>
     <p>$$\nabla_\theta \log P(\tau;\theta) = \sum_t \nabla_\theta \log \pi_\theta(a_t|s_t)$$</p>
-    <p class="recap">the physics terms had no \(\theta\) in them, so their gradient is zero — they vanish. What's left depends only on the policy. That's the mechanical reason RL can learn without a model.</p>
+    <p class="recap-box"><b>IN WORDS</b> &nbsp;the physics terms had no \(\theta\) in them, so their gradient is zero — they vanish. What's left depends only on the policy. That's the mechanical reason RL can learn without a model.</p>
     <p>$$\boxed{\;\nabla_\theta J(\theta) = \mathbb E_{\tau\sim\pi_\theta}\Big[\Big(\sum_t \nabla_\theta \log \pi_\theta(a_t|s_t)\Big)\, R(\tau)\Big]\;}$$</p>
     <p class="recap-box"><b>IN WORDS</b> &nbsp;run the policy, then make the actions taken in good trajectories more likely and the rest less likely — each action's log-probability weighted by the return that followed. The dynamics never appear, only sampled returns.</p>
     <p>This is <strong>REINFORCE</strong>. Read it as weighted maximum likelihood: each trajectory's actions get their log-probabilities pushed up in proportion to how well the whole trajectory scored. The dynamics dropping out is the miracle — <em>the gradient of performance requires zero knowledge of physics</em>, only the ability to act and observe returns. That's what "model-free" means, mechanically.</p>
@@ -71,6 +72,10 @@ for iteration in range(1000):
     loss.backward(); opt.step(); opt.zero_grad()</code></pre>
       <p>Three things to notice, slowly. <strong>One:</strong> the loss line <em>is</em> the boxed equation — autograd computes \(\nabla_\theta \log \pi_\theta\) for you, so "implementing REINFORCE" is just remembering to multiply log-probs by returns before summing. <strong>Two:</strong> <code>env.step()</code> is called, never differentiated, never modeled — the dynamics dropped out of the math, so they drop out of the code. <strong>Three:</strong> the normalize-G line is doing enormous work; delete it and watch training destabilize. That fragility, experienced firsthand, is the honest motivation for everything after §5.4 — baselines, critics, GAE, PPO are increasingly sophisticated replacements for that one crude line. (HW4 has you build exactly this and measure it.)</p>
     </div></details>
+
+    <h4>Trace the derivation: from objective to update rule</h4>
+    <p>Let's trace how the objective becomes the update rule. Every line below is an exact rewrite — no approximation until we sample. Step through to see where the log comes from.</p>
+    <PgTransformWidget />
 
     <h4>Watch a policy learn from reward alone</h4>
     <p>The boxed gradient says: push up the log-probability of actions that led to high return, push down the rest. That's abstract — so let's make it move. Below, the cyan curve is a Gaussian policy \(\pi(a)=\mathcal{N}(\mu,\sigma)\); the orange curve is a reward landscape it cannot see and has never been told. Each press samples a handful of actions, scores them by the reward they receive, and takes one policy-gradient step. Green dots did better than the batch average and get their probability pushed up; red dots did worse and get pushed down — that "compared to average" is the baseline from §5.4, included here because without it the policy barely learns. Watch the distribution crawl uphill and tighten around the best action. This is REINFORCE, made visible.</p>
@@ -133,7 +138,7 @@ for iteration in range(N):
     </div></details>
 
     <h4>One knob from TD to Monte Carlo</h4>
-    <p>GAE looks like a third thing to learn, but it's really just the bias–variance ruler from Lecture 4 with a smooth handle. The advantage estimate is a weighted blend of every \(n\)-step return, with weight \((1-\lambda)\lambda^{n}\) on the \(n\)-step term. Slide \(\lambda\): at \(0\), all weight sits on the one-step TD estimate — lean entirely on the critic, low variance but biased; at \(1\), the weight spreads across the whole trajectory — pure Monte Carlo, unbiased but high variance. The usual choice \(\lambda=0.95\) trusts real rewards while letting the critic quietly soak up variance.</p>
+    <p>GAE looks like a third thing to learn, but it's really just the bias–variance ruler from Lecture 4 with a smooth handle. The advantage estimate is a weighted blend of every \(n\)-step advantage, with weight \((1-\lambda)\lambda^{n-1}\) on the \(n\)-step term (for \(n=1,2,\ldots\), so the weights sum to one). Slide \(\lambda\): at \(0\), all weight sits on the one-step TD estimate — lean entirely on the critic, low variance but biased; at \(1\), the weight spreads across the whole trajectory — pure Monte Carlo, unbiased but high variance. The usual choice \(\lambda=0.95\) trusts real rewards while letting the critic quietly soak up variance.</p>
     <GaeWidget />
 
     <h3><span class="knum">5.6</span>The step-size problem and PPO</h3>
@@ -152,10 +157,10 @@ for iteration in range(N):
     <h3><span class="knum">5.7</span>Off-policy continuous control: DDPG → TD3 → SAC</h3>
     <p>On real hardware, samples are precious, and on-policy methods discard data after each update. The off-policy family keeps Lecture 4's replay buffer and makes the actor solve Q-learning's intractable max. <strong>DDPG</strong>: train \(Q_\phi\) by TD as in DQN, but replace \(\max_{a'} Q(s',a')\) with \(Q_\phi(s', \mu_\theta(s'))\), where the deterministic actor \(\mu_\theta\) is trained to <em>be</em> the argmax by ascending straight up the critic:</p>
     <p>$$\nabla_\theta J \approx \mathbb E_{s\sim\mathcal D}\big[\nabla_a Q_\phi(s,a)\big|_{a=\mu_\theta(s)}\; \nabla_\theta \mu_\theta(s)\big]$$</p>
-    <p>Note this is <em>not</em> the score-function estimator — it backpropagates through the critic into the actor. Powerful and notoriously brittle: the actor exploits errors in \(Q_\phi\) (it climbs to wherever the critic hallucinates value). <strong>TD3</strong> patches the three worst leaks: <em>twin critics</em> (take the min of two Q-networks in targets — pessimism against overestimation), <em>target policy smoothing</em> (add noise to target actions so Q can't exploit narrow spikes), <em>delayed actor updates</em> (let the critic settle).</p>
+    <p>Note this is <em>not</em> the score-function estimator — it backpropagates through the critic into the actor. Because \(a = \mu_\theta(s)\) is deterministic, \(Q\) is a differentiable function of \(\theta\) via the chain rule — there's no expectation over sampled actions to differentiate, so no score-function trick is needed; this is the deterministic extreme of §5.2's two-estimator fork. Powerful and notoriously brittle: the actor exploits errors in \(Q_\phi\) (it climbs to wherever the critic hallucinates value). <strong>TD3</strong> patches the three worst leaks: <em>twin critics</em> (take the min of two Q-networks in targets — pessimism against overestimation), <em>target policy smoothing</em> (add noise to target actions so Q can't exploit narrow spikes), <em>delayed actor updates</em> (let the critic settle).</p>
     <p><strong>SAC</strong> (Soft Actor-Critic) — the modern default for real-robot RL — changes the objective itself, adding an entropy bonus:</p>
     <p>$$J(\pi) = \sum_t \mathbb E\big[\, r_t + \alpha\, \mathcal H\big(\pi(\cdot|s_t)\big)\big]$$</p>
-    <p>Maximize reward <em>while staying as random as possible</em>. Effects: exploration is built into the objective (no external noise schedules), the policy hedges across all good actions instead of collapsing onto one (robustness), and the temperature \(\alpha\) is auto-tuned against a target entropy. The critic learns a "soft" Q with an entropy-augmented Bellman target, and the stochastic actor is trained by minimizing \(\mathbb E_{s}\big[\mathbb E_{a\sim\pi_\theta}[\alpha\log\pi_\theta(a|s) - Q_\phi(s,a)]\big]\) using the <strong>reparameterization trick</strong>: \(a = \tanh(\mu_\theta(s) + \sigma_\theta(s)\odot\varepsilon),\ \varepsilon\sim\mathcal N(0,I)\) — exactly the VAE move, giving low-variance gradients through the critic. HIL-SERL (Lecture 4's paper) and most sample-efficient hardware RL sit on this foundation.</p>
+    <p>Maximize reward <em>while staying as random as possible</em>. Effects: exploration is built into the objective (no external noise schedules), the policy hedges across all good actions instead of collapsing onto one (robustness), and the temperature \(\alpha\) is auto-tuned against a target entropy. The critic learns a "soft" Q with an entropy-augmented Bellman target, and the stochastic actor is trained by minimizing \(\mathbb E_{s}\big[\mathbb E_{a\sim\pi_\theta}[\alpha\log\pi_\theta(a|s) - Q_\phi(s,a)]\big]\) using the <strong>reparameterization trick</strong>: \(a = \tanh(\mu_\theta(s) + \sigma_\theta(s)\odot\varepsilon),\ \varepsilon\sim\mathcal N(0,I)\) — exactly the VAE move, giving low-variance gradients through the critic. One notorious implementation wrinkle: because the action is squashed through \(\tanh\), the log-probability needs a change-of-variables correction \(\log\pi(a|s) = \log\mathcal N(u) - \sum_i \log\!\big(1-\tanh^2(u_i)\big)\) (with \(u=\mu+\sigma\odot\varepsilon\)) — omit that Jacobian term and the entropy bonus is silently wrong. HIL-SERL (Lecture 4's paper) and most sample-efficient hardware RL sit on this foundation.</p>
 
     <div class="callout"><span class="co-label">The decision chart, honestly</span>
     <strong>Cheap massively-parallel sim?</strong> PPO. Robust, scales, who cares about sample efficiency. <strong>Learning on real hardware, minutes matter?</strong> SAC-family + replay + demos (the HIL-SERL recipe). <strong>Fixed dataset, no environment access at all?</strong> Offline RL (§5.9). This one chart organizes 80% of applied robot-RL papers.</div>
@@ -199,7 +204,7 @@ for iteration in range(N):
       <div class="res-head">Lecture 5 resources</div>
       <ul>
         <li><span class="rtag">Slides</span><a href="https://cvg.ethz.ch/lectures/Robot-Learning/lectures/lecture5_rl_II.pdf" target="_blank" rel="noopener">lecture5_rl_II.pdf</a></li>
-        <li><span class="rtag">Recording</span><a href="https://video.ethz.ch/lectures/d-infk/2026/spring/263-5911-00L/v/D5hhpjIs3C4" target="_blank" rel="noopener">ETH video portal — Lecture 5</a> · <a href="https://www.youtube.com/watch?v=AdTGz8YnnlE" target="_blank" rel="noopener">YouTube mirror</a></li>
+        <li><span class="rtag">Recording</span><a href="https://www.youtube.com/watch?v=AdTGz8YnnlE" target="_blank" rel="noopener">YouTube recording — Lecture 5</a></li>
         <li><span class="rtag">Guest</span><a href="https://youtu.be/CPmTpXA5azw" target="_blank" rel="noopener">Andrew Wagenmaker (UC Berkeley) — guest spotlight</a></li>
         <li><span class="rtag">Homework</span><a href="https://github.com/mees-robot-learning-course/ethz-course-2026/tree/main/hw4_reinforcement_learning" target="_blank" rel="noopener">HW4: Reinforcement Learning</a> — implement the gradient estimator with and without baseline and <em>plot the variance</em>; it's the whole lecture in one figure</li>
       </ul>
@@ -214,6 +219,7 @@ import { ref, onMounted, nextTick } from 'vue';
 import Quiz from '../components/Quiz.vue';
 import CompleteBar from '../components/CompleteBar.vue';
 import PgWidget from '../widgets/PgWidget.vue';
+import PgTransformWidget from '../widgets/PgTransformWidget.vue';
 import BaseWidget from '../widgets/BaseWidget.vue';
 import ClipWidget from '../widgets/ClipWidget.vue';
 import GaeWidget from '../widgets/GaeWidget.vue';

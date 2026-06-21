@@ -32,7 +32,7 @@
     <h3><span class="knum">2.2</span>Optimal control and LQR: control as optimization</h3>
     <p>Pose the goal as minimizing cumulative cost over a horizon, subject to dynamics:</p>
     <p>$$\min_{u_0,\dots,u_{T-1}} \sum_{t=0}^{T-1} c(x_t, u_t) \quad \text{s.t.}\quad x_{t+1} = f(x_t, u_t)$$</p>
-    <p>The crown-jewel solvable case is the <strong>Linear Quadratic Regulator</strong>: linear dynamics \(x_{t+1} = A x_t + B u_t\), quadratic cost \(c = x^\top Q x + u^\top R u\) (\(Q\): how much you hate state error; \(R\): how much you hate effort). Solving backward in time via dynamic programming, the optimal cost-to-go stays quadratic, \(V_t(x) = x^\top P_t x\), with \(P_t\) given by the <strong>Riccati recursion</strong>, and the optimal control is <em>linear state feedback</em>:</p>
+    <p>The crown-jewel solvable case is the <strong>Linear Quadratic Regulator</strong>: linear dynamics \(x_{t+1} = A x_t + B u_t\), quadratic cost \(c = x^\top Q x + u^\top R u\) (\(Q\): how much you hate state error; \(R\): how much you hate effort). Solving backward in time via dynamic programming, the optimal cost-to-go stays quadratic, \(V_t(x) = x^\top P_t x\) (with \(P_t \succeq 0\) — it's a cost-to-go, so never negative) — because plugging a quadratic \(V\) into the Bellman backup with linear dynamics and quadratic cost and minimizing over \(u\) yields a function still quadratic in \(x\); that closure is what makes LQR exactly solvable — with \(P_t\) given by the <strong>Riccati recursion</strong>, and the optimal control is <em>linear state feedback</em>:</p>
     <p>$$u_t = -K_t\, x_t, \qquad K_t = (R + B^\top P_{t+1} B)^{-1} B^\top P_{t+1} A$$</p>
     <p>Three lessons to carry forward. (1) <strong>Cost-to-go is a value function</strong> — LQR's \(V_t(x)\) is the exact ancestor of RL's \(V(s)\), and the backward Riccati sweep is Bellman recursion in closed form. (2) Nonlinear systems are handled by iteratively linearizing around a trajectory (iLQR) or re-solving a short horizon every step (<strong>MPC</strong>, model-predictive control — plan, execute one step, replan). (3) All of it presumes \(f\) is known. <em>Unknown or unmodelable \(f\) is the door RL walks through.</em></p>
 
@@ -87,7 +87,7 @@
       <div class="res-head">Lecture 2 resources</div>
       <ul>
         <li><span class="rtag">Slides</span><a href="https://cvg.ethz.ch/lectures/Robot-Learning/lectures/lecture2_control_mdp.pdf" target="_blank" rel="noopener">lecture2_control_mdp.pdf</a></li>
-        <li><span class="rtag">Recording</span><a href="https://video.ethz.ch/lectures/d-infk/2026/spring/263-5911-00L/v/L224Ovxd2l4" target="_blank" rel="noopener">ETH video portal — Lecture 2</a></li>
+        <li><span class="rtag">Recording</span><a href="https://www.youtube.com/watch?v=5-Bb84eTTqQ" target="_blank" rel="noopener">YouTube recording — Lecture 2</a></li>
         <li><span class="rtag">Guest</span><a href="https://youtu.be/aG8NPTPhwkE" target="_blank" rel="noopener">Abhishek Gupta (UW) — guest spotlight</a></li>
         <li><span class="rtag">Homework</span><a href="https://github.com/mees-robot-learning-course/ethz-course-2026/tree/main/hw2_robot_control_mdps" target="_blank" rel="noopener">HW2: Robot Control &amp; MDPs</a> — implement value/policy iteration yourself; it makes L4 trivial to follow</li>
       </ul>

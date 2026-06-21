@@ -42,6 +42,17 @@ onMounted(() => {
   function ax(x) { return Wc / 2 + x * 150; }
   function ay(t) { return 40 + t * (Hc - 82); }
 
+  // Dark backing pill behind a label so it stays legible over paths/dots.
+  function label(text, x, y, color, align, size) {
+    g.font = (size || 12) + 'px IBM Plex Mono, monospace';
+    var w = g.measureText(text).width, pad = 4, h = (size || 12) + 4;
+    var bx = align === 'center' ? x - w / 2 - pad : x - pad;
+    g.fillStyle = 'rgba(15,20,34,0.78)';
+    g.fillRect(bx, y - h + 3, w + pad * 2, h);
+    g.fillStyle = color; g.textAlign = align;
+    g.fillText(text, x, y);
+  }
+
   var paths = [];
 
   function build() {
@@ -62,9 +73,7 @@ onMounted(() => {
     g.fillStyle = '#0F1422'; g.fillRect(0, 0, Wc, Hc);
     g.strokeStyle = 'rgba(120,140,200,0.16)'; g.lineWidth = 1;
     for (var gx = -2; gx <= 2; gx++) { g.beginPath(); g.moveTo(ax(gx), 34); g.lineTo(ax(gx), Hc - 36); g.stroke(); }
-    g.fillStyle = R.C.cyan; g.font = '12px IBM Plex Mono, monospace'; g.textAlign = 'center';
-    g.fillText('"go left"', ax(m1), Hc - 18); g.fillText('"go right"', ax(m2), Hc - 18);
-    g.fillStyle = '#8A93A3'; g.fillText('noise  (t = 0)', ax(0), 26);
+    label('noise  (t = 0)', ax(0), 26, '#8A93A3', 'center', 12);
     for (var i = 0; i < paths.length; i++) {
       var p = paths[i];
       g.beginPath();
@@ -77,10 +86,12 @@ onMounted(() => {
       g.beginPath(); g.arc(ax(last.x), ay(last.t), 3, 0, 2 * Math.PI); g.fillStyle = R.C.cyan; g.fill();
       g.beginPath(); g.arc(ax(p[0].x), ay(0), 2.2, 0, 2 * Math.PI); g.fillStyle = '#8A93A3'; g.fill();
     }
-    g.fillStyle = '#EAF0F8'; g.textAlign = 'left'; g.font = '12px IBM Plex Mono, monospace';
-    g.fillText('integration steps (NFE) = ' + steps + '    ·    diffusion typically needs ~50–100', 40, Hc - 4);
+    // Mode + readout labels last, with backing, so converging paths never break them.
+    label('"go left"', ax(m1), Hc - 24, R.C.cyan, 'center', 12);
+    label('"go right"', ax(m2), Hc - 24, R.C.cyan, 'center', 12);
+    label('integration steps (NFE) = ' + steps + '    ·    diffusion typically needs ~50–100', 40, Hc - 4, '#EAF0F8', 'left', 12);
     g.save(); g.translate(15, Hc / 2); g.rotate(-Math.PI / 2);
-    g.fillStyle = '#8A93A3'; g.textAlign = 'center'; g.fillText('integration time t  →', 0, 0); g.restore();
+    g.fillStyle = '#8A93A3'; g.textAlign = 'center'; g.font = '12px IBM Plex Mono, monospace'; g.fillText('integration time t  →', 0, 0); g.restore();
   }
 
   R.slider(ctr, { label: 'ODE steps (NFE)', min: 1, max: 40, step: 1, value: steps, fmt: function (v) { return '' + v; }, on: function (v) { steps = v; build(); draw(); } });

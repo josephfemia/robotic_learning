@@ -25,7 +25,7 @@
 
     <p>Since the rest of the lecture leans on it, here is the one operation a transformer repeats, made explicit. Each token is projected to a <em>query</em>, <em>key</em>, and <em>value</em>; every token's output is a weighted average of all values, weighted by how well its query matches each key:</p>
     <p>$$\text{Attention}(Q,K,V) = \mathrm{softmax}\!\left(\frac{QK^{\top}}{\sqrt{d}}\right)V$$</p>
-    <p class="recap">every token looks at every other token, decides how relevant each is (the softmax weights), and pulls in a blend of their information — which is how a frame at \(t{=}3\) can directly attend to one at \(t{=}300\) with no decay. Causal masking (zeroing future positions) makes it predict-the-next-token; that's the entire engine below.</p>
+    <p class="recap-box"><b>IN WORDS</b> &nbsp;every token looks at every other token, decides how relevant each is (the softmax weights), and pulls in a blend of their information — which is how a frame at \(t{=}3\) can directly attend to one at \(t{=}300\) with no decay. Causal masking (zeroing future positions) makes it predict-the-next-token; that's the entire engine below.</p>
 
     <h4>See attention reach across time</h4>
     <p>The claim that "a late token can attend directly to an early one with no decay" is worth seeing as a grid. Below is the attention matrix over a short trajectory: row \(i\) is the token doing the looking, column \(j\) is what it looks at, and brightness is the weight. Turn on the causal mask to grey out the future (each token sees only the past — that's what makes it a next-token predictor), and drag the temperature to watch attention sharpen onto a few tokens or spread evenly. Note there's no diagonal falloff: position 12 can land most of its weight on position 1.</p>
@@ -82,7 +82,7 @@
       <div class="res-head">Lecture 7 resources</div>
       <ul>
         <li><span class="rtag">Slides</span><a href="https://cvg.ethz.ch/lectures/Robot-Learning/lectures/lecture7_sequence_modeling.pdf" target="_blank" rel="noopener">lecture7_sequence_modeling.pdf</a></li>
-        <li><span class="rtag">Recording</span><a href="https://video.ethz.ch/lectures/d-infk/2026/spring/263-5911-00L/v/F8PRjuPO59n" target="_blank" rel="noopener">ETH video portal — Lecture 7</a></li>
+        <li><span class="rtag">Recording</span><a href="https://youtu.be/imSTfMJjp7M" target="_blank" rel="noopener">YouTube recording — Lecture 7</a></li>
         <li><span class="rtag">Guest</span><a href="https://youtu.be/VS7Ulaugevg" target="_blank" rel="noopener">Ted Xiao (Prometheus, ex-Google DeepMind): Three Eras of Robot Learning</a> — watch this one; it's the course's historical thesis in 30 minutes</li>
       </ul>
     </div>
