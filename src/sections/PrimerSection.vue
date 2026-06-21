@@ -36,6 +36,7 @@
     <p>The abstract phrase "the policy outputs joint angles \(q\)" becomes obvious the moment you see it. Below is a 2-joint arm. You don't move the hand directly — you set the two <em>angles</em>, and forward kinematics decides where the hand lands. Sweep them and watch the reachable workspace fill in. Two things to notice: most hand positions are reachable by <em>two</em> different angle combinations (that's why inverse kinematics has multiple solutions), and a small change in angle near full extension moves the hand a lot (that's the Jacobian stretching). This is the space every learned policy is really acting in.</p>
     <ArmWidget />
 
+    <p>Kinematics ignored forces; <strong>dynamics</strong> reintroduces them. Newton's law for an arm — mass &times; acceleration = forces — takes this matrix form:</p>
     <p>$$M(q)\,\ddot q + C(q,\dot q)\,\dot q + g(q) = \tau$$</p>
     <p>\(M\) is the configuration-dependent inertia matrix, \(C\) collects Coriolis/centrifugal terms, \(g\) is gravity, and \(\tau\) is the vector of motor torques you command. If you knew this model perfectly, control would be (almost) calculus. The catch: the moment the robot <em>touches anything</em> — a mug, the floor, a door handle — you add contact forces and friction, which are discontinuous, hard to measure, and brutally hard to model. <strong>Contact is the single biggest reason manipulation resists classical methods and motivates learning.</strong></p>
 
@@ -91,6 +92,7 @@
     <h3><span class="knum">PART C</span>The actuarial Rosetta stone</h3>
     <p>Here's the part nobody will tell you in lecture: <strong>you have been doing dynamic programming on Markov processes with discounting your entire actuarial career.</strong> The vocabulary differs; the mathematics is the same. The clearest example — compare the actuarial recursion for a whole-life annuity-due with the Bellman equation:</p>
     <p>$$\ddot a_x = 1 + v\, p_x\, \ddot a_{x+1} \qquad\Longleftrightarrow\qquad V^\pi(s) = r(s) + \gamma \sum_{s'} P(s'|s)\, V^\pi(s')$$</p>
+    <p>The right-hand form is the fixed-policy, state-reward special case of the Bellman equation — reward depends only on state and the policy is held fixed — chosen precisely because its structure mirrors the annuity recursion exactly. It differs from Part B's general form \(V^\pi(s)=\mathbb{E}[r(s,a)+\gamma V^\pi(s')]\), which takes an explicit expectation over actions drawn from \(\pi\); once the policy is fixed and rewards depend only on state, that expectation collapses to the deterministic sum here.</p>
     <p>Read the left side as an RL problem: the "state" is being alive at age \(x\); the "reward" is the payment of 1 each period; the "discount factor" is \(v = 1/(1+i)\); the "transition" is surviving to age \(x+1\) with probability \(p_x\); death is an absorbing terminal state with value 0. An annuity value <em>is</em> a value function. A reserve <em>is</em> a value function. You have computed \(V^\pi\) thousands of times.</p>
 
     <div class="bridge">
