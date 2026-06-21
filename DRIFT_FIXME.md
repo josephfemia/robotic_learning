@@ -1,6 +1,12 @@
 # Phase 1 Drift / FIXME log — original bugs to address in Phase 2
 
-Entries are logged here as they are discovered during Phase 1 migration; none are fixed until Phase 2.
+Entries logged during Phase 1 migration (none fixed in Phase 1).
+
+**Phase 2 disposition:**
+- **#1 (nav highlight on load) — FIXED** in Phase 2 (`navActiveId` now initializes to `'start'`).
+- **#3 reparam dot jitter — FIXED** during the Phase-2 interactive-polish sweep (jitter pre-sampled once per change).
+- **#2 (L4 §4.5 numbering gap)** — left as-is: cosmetic; the senior content review did not prioritize renumbering.
+- **#3 others (drift reseed, grid wall fallback, bandit dup, bon `Nmax`)** — numerically harmless; `drift` motion was reworked in the polish sweep; the rest preserved (no numeric impact).
 
 ---
 
