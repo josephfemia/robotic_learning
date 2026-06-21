@@ -14,8 +14,19 @@
     <!-- Progress bar component -->
     <ProgressBar />
 
+    <!-- Jump to next unfinished lecture (keyboard a11y affordance) -->
+    <div class="next-unfinished-wrap">
+      <button
+        class="toggle-btn next-unfinished-btn"
+        :disabled="!nextUnfinishedId"
+        @click="$emit('navigate', nextUnfinishedId)"
+      >
+        {{ nextUnfinishedId ? 'Jump to next unfinished →' : 'All lectures complete ✓' }}
+      </button>
+    </div>
+
     <!-- Nav — exact structure from reference lines ~298–319 -->
-    <nav class="nav" id="nav">
+    <nav class="nav" id="nav" @keydown="onNavKeydown">
       <template v-for="group in NAV_GROUPS" :key="group.header">
         <div class="nav-group">{{ group.header }}</div>
         <button
@@ -33,8 +44,9 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import ProgressBar from './ProgressBar.vue';
-import { NAV_GROUPS } from '../data/nav.js';
+import { NAV_GROUPS, LECTURES } from '../data/nav.js';
 import { useProgress } from '../composables/useProgress.js';
 
 const { completed } = useProgress();
@@ -51,4 +63,54 @@ defineProps({
 });
 
 defineEmits(['navigate']);
+
+// First lecture not yet completed; falls back to 'review' when all are done,
+// and to '' (button disabled) when review would have nothing left to offer.
+const nextUnfinishedId = computed(() => {
+  const next = LECTURES.find(id => !completed.has(id));
+  return next || (completed.has('review') ? '' : 'review');
+});
+
+// Roving arrow-key navigation: ArrowUp/Down move focus between nav buttons
+// (wrapping at the ends), Home/End jump to first/last. Enter/Space activation
+// stays native. The tab order is otherwise unchanged.
+function onNavKeydown(ev) {
+  const keys = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
+  if (!keys.includes(ev.key)) return;
+
+  const buttons = Array.from(ev.currentTarget.querySelectorAll('button'));
+  if (!buttons.length) return;
+
+  const current = buttons.indexOf(document.activeElement);
+  let next;
+  if (ev.key === 'Home') {
+    next = 0;
+  } else if (ev.key === 'End') {
+    next = buttons.length - 1;
+  } else if (ev.key === 'ArrowDown') {
+    next = current < 0 ? 0 : (current + 1) % buttons.length;
+  } else {
+    next = current < 0 ? buttons.length - 1 : (current - 1 + buttons.length) % buttons.length;
+  }
+
+  ev.preventDefault();
+  buttons[next].focus();
+}
 </script>
+
+<style scoped>
+/* Spacing for the next-unfinished affordance; matches .progress-wrap padding
+   and the sidebar divider tone. Button visuals reuse the global .toggle-btn. */
+.next-unfinished-wrap {
+  padding: 14px 24px;
+  border-bottom: 1px solid #2A3140;
+}
+.next-unfinished-btn {
+  margin-top: 0;
+  width: 100%;
+}
+.next-unfinished-btn:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+</style>

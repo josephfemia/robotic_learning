@@ -50,7 +50,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import TopBar from './components/TopBar.vue';
 import Sidebar from './components/Sidebar.vue';
 import { ALL_NAV_ITEMS, TITLES } from './data/nav.js';
@@ -112,6 +112,15 @@ function show(id) {
   navActiveId.value = id;
   closeDrawer();
   window.scrollTo(0, 0);
+  // Move keyboard/screen-reader focus into the new section's heading so users
+  // land in the freshly shown content rather than staying on the nav button.
+  nextTick(() => {
+    const heading = document.querySelector(`#${id} .lecture-head h2`);
+    if (heading) {
+      heading.setAttribute('tabindex', '-1');
+      heading.focus({ preventScroll: true });
+    }
+  });
 }
 
 function closeDrawer() {
