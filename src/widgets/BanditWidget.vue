@@ -40,23 +40,24 @@ onMounted(() => {
     draw();
   }
 
-  function step() {
-    var from = disp.slice();
+  // One pull: identical RNG draws and state updates whether invoked once or in
+  // a loop. No animation here so callers can ease the bars exactly once.
+  function onePull() {
     var a = pickArm(strat, Q, n, t, eps, Math.random);
     var res = pull(a, truth, Q, n, best, Math.random);
     t++; regret += res.regretStep; regretHist.push(regret);
     if (regretHist.length > 400) regretHist.shift();
+  }
+
+  function step() {
+    var from = disp.slice();
+    onePull();
     easeBars(from);
   }
 
   function run(m) {
     var from = disp.slice();
-    for (var i = 0; i < m; i++) {
-      var a = pickArm(strat, Q, n, t, eps, Math.random);
-      var res = pull(a, truth, Q, n, best, Math.random);
-      t++; regret += res.regretStep; regretHist.push(regret);
-    }
-    while (regretHist.length > 400) regretHist.shift();
+    for (var i = 0; i < m; i++) onePull();
     easeBars(from);
   }
 

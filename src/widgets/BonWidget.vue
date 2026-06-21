@@ -28,7 +28,6 @@ onMounted(() => {
   // evalN() lives in logic/bestOfN.js (vitest-pinned).
   // window.RLLAB → R; getElementById('bon-stage') → stage; getElementById('bon-ctrl') → ctr.
   var vacc = 0.9;
-  var Nmax = 64;
   var W = 700, H = 320, svg = R.SVG(stage, W, H);
   var Ns = [1, 2, 4, 8, 16, 32, 64];
 
