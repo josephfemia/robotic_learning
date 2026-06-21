@@ -33,12 +33,12 @@
     <p>$$\nabla_\theta P(\tau;\theta) = P(\tau;\theta)\,\nabla_\theta \log P(\tau;\theta)$$</p>
     <p>Concretely, \(\int \nabla_\theta P(\tau;\theta)\,R\,d\tau = \int P(\tau;\theta)\,\frac{\nabla_\theta P(\tau;\theta)}{P(\tau;\theta)}\,R\,d\tau = \int P(\tau;\theta)\,\nabla_\theta \log P(\tau;\theta)\,R\,d\tau\) — and an integral of \(P(\tau;\theta)\times(\cdots)\) is exactly an expectation over \(\tau\sim\pi_\theta\).</p>
     <p>$$\Rightarrow\quad \nabla_\theta J = \mathbb E_{\tau\sim\pi_\theta}\big[\nabla_\theta \log P(\tau;\theta)\; R(\tau)\big]$$</p>
-    <p class="recap">that one trick converted "the gradient of an integral" (can't sample) into "the average of a gradient × return" (just run the policy and average). Everything after is figuring out what \(\nabla\log P\) simplifies to.</p>
+    <p class="recap-box"><b>IN WORDS</b> &nbsp;that one trick converted "the gradient of an integral" (can't sample) into "the average of a gradient × return" (just run the policy and average). Everything after is figuring out what \(\nabla\log P\) simplifies to.</p>
     <p>Now expand the trajectory probability — it factorizes by the Markov chain structure:</p>
     <p>$$P(\tau;\theta) = p(s_0)\prod_{t} \pi_\theta(a_t|s_t)\; p(s_{t+1}|s_t,a_t)$$</p>
     <p>Take the log (products → sums) and then \(\nabla_\theta\). The initial distribution and the dynamics <strong>do not depend on \(\theta\)</strong> — their terms vanish:</p>
     <p>$$\nabla_\theta \log P(\tau;\theta) = \sum_t \nabla_\theta \log \pi_\theta(a_t|s_t)$$</p>
-    <p class="recap">the physics terms had no \(\theta\) in them, so their gradient is zero — they vanish. What's left depends only on the policy. That's the mechanical reason RL can learn without a model.</p>
+    <p class="recap-box"><b>IN WORDS</b> &nbsp;the physics terms had no \(\theta\) in them, so their gradient is zero — they vanish. What's left depends only on the policy. That's the mechanical reason RL can learn without a model.</p>
     <p>$$\boxed{\;\nabla_\theta J(\theta) = \mathbb E_{\tau\sim\pi_\theta}\Big[\Big(\sum_t \nabla_\theta \log \pi_\theta(a_t|s_t)\Big)\, R(\tau)\Big]\;}$$</p>
     <p class="recap-box"><b>IN WORDS</b> &nbsp;run the policy, then make the actions taken in good trajectories more likely and the rest less likely — each action's log-probability weighted by the return that followed. The dynamics never appear, only sampled returns.</p>
     <p>This is <strong>REINFORCE</strong>. Read it as weighted maximum likelihood: each trajectory's actions get their log-probabilities pushed up in proportion to how well the whole trajectory scored. The dynamics dropping out is the miracle — <em>the gradient of performance requires zero knowledge of physics</em>, only the ability to act and observe returns. That's what "model-free" means, mechanically.</p>
