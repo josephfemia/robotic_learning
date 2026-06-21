@@ -28,7 +28,7 @@ onMounted(() => {
   // Ported verbatim from the disc IIFE (reference lines ~2412–2429).
   // Numeric values come from logic/discount.js (vitest-pinned), which is
   // identical to the original's inline Math.pow / 1/(1-γ).
-  const W = 700, H = 300, N = 26, padL = 48, padR = 22, padT = 26, padB = 46;
+  const W = 700, H = 300, N = 26, padL = 48, padR = 22, padT = 46, padB = 46;
   let gamma = 0.9;
   const svg = R.SVG(stage, W, H);
 
@@ -48,7 +48,7 @@ onMounted(() => {
     svg.appendChild(R.TX(x0 - 8, y0, '0', { anchor: 'end', fill: R.C.dim, size: 11 }));
     svg.appendChild(R.TX(x0 - 8, y1, '1', { anchor: 'end', fill: R.C.dim, size: 11, base: 'hanging' }));
     svg.appendChild(R.TX((x0 + x1) / 2, H - 12, 'steps into the future  k  →', { fill: R.C.dim, size: 11.5 }));
-    svg.appendChild(R.TX(x1, y0 - 8, 'Σ γᵏ = 1/(1−γ) = ' + total.toFixed(1), { anchor: 'end', fill: R.C.orange, size: 12.5, weight: 600 }));
+    svg.appendChild(R.TX(x0, 16, 'Σ γᵏ = 1/(1−γ) = ' + total.toFixed(1), { anchor: 'start', fill: R.C.orange, size: 12.5, weight: 600, base: 'hanging' }));
   }
 
   R.slider(ctr, { label: 'discount  γ', min: 0, max: 0.99, step: 0.01, value: gamma, fmt: (v) => v.toFixed(2), on: (v) => { gamma = v; draw(); } });

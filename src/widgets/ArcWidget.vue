@@ -11,6 +11,7 @@
 import { onMounted, ref } from 'vue';
 import Lab from '../components/Lab.vue';
 import R from './rllab.js';
+import { tween } from '../composables/useAnimate.js';
 
 const lab = ref(null);
 
@@ -35,7 +36,7 @@ onMounted(() => {
   ];
   var edges = [['l3', 'l4'], ['l4', 'l5'], ['l5', 'l6'], ['l6', 'l7'], ['l5', 'l8'], ['l8', 'l9'], ['l7', 'l9'], ['l9', 'l10']];
   var motifPath = ['l3', 'l4', 'l5', 'l8'];
-  var sel = 0;
+  var sel = 0, selGrow = 1; // selGrow ∈ [0,1] eases the chosen node into focus
   function nodeById(id) { for (var i = 0; i < nodes.length; i++) if (nodes[i].id === id) return nodes[i]; }
   function draw() {
     R.clr(svg);
@@ -46,16 +47,25 @@ onMounted(() => {
     svg.appendChild(R.E('path', { d: dm, fill: 'none', stroke: R.C.orange, 'stroke-width': 2.5, 'stroke-dasharray': '2 5', 'stroke-linecap': 'round', opacity: 0.8 }));
     for (var i = 0; i < nodes.length; i++) { var n = nodes[i], on = (i === sel);
       var g = R.E('g', {}); g.style.cursor = 'pointer';
-      g.appendChild(R.E('circle', { cx: n.x, cy: n.y, r: on ? 13 : 9, fill: on ? R.C.cyan : (n.motif ? 'rgba(232,89,12,0.85)' : R.C.ink), stroke: '#0F1422', 'stroke-width': 2 }));
-      g.appendChild(R.TX(n.x, n.y - (on ? 20 : 16), n.t, { fill: on ? R.C.cyan : R.C.dim, size: on ? 12 : 10.5, weight: on ? 700 : 500 }));
-      (function (idx) { g.addEventListener('click', function () { sel = idx; refresh(); }); })(i);
+      var rr = on ? 9 + 4 * selGrow : 9;
+      var off = on ? 16 + 4 * selGrow : 16;
+      var sz = on ? 10.5 + 1.5 * selGrow : 10.5;
+      g.appendChild(R.E('circle', { cx: n.x, cy: n.y, r: rr, fill: on ? R.C.cyan : (n.motif ? 'rgba(232,89,12,0.85)' : R.C.ink), stroke: '#0F1422', 'stroke-width': 2 }));
+      g.appendChild(R.TX(n.x, n.y - off, n.t, { fill: on ? R.C.cyan : R.C.dim, size: sz, weight: on ? 700 : 500 }));
+      (function (idx) { g.addEventListener('click', function () { select(idx); }); })(i);
       svg.appendChild(g);
     }
     svg.appendChild(R.TX(70, 30, 'cyan spine = supervision arc   ·   orange thread = the "optimize-an-approximation" motif', { anchor: 'start', fill: R.C.dim, size: 11, base: 'hanging' }));
   }
   var info = R.ce('div'); info.style.cssText = 'font-size:13px;color:var(--code-ink);margin:8px 0 6px;min-height:48px;line-height:1.5'; ctr.appendChild(info);
   var jump = R.btn(ctr, 'Open this lecture →', 'primary', function () { var b = document.querySelector('[data-go="' + nodes[sel].id + '"]'); if (b) b.click(); });
-  function refresh() { info.innerHTML = '<b style="color:#36C5D0">' + nodes[sel].t + '</b> — ' + nodes[sel].role; jump.textContent = 'Open ' + nodes[sel].t.split(' ')[0] + ' →'; draw(); }
+  function syncPanel() { info.innerHTML = '<b style="color:#36C5D0">' + nodes[sel].t + '</b> — ' + nodes[sel].role; jump.textContent = 'Open ' + nodes[sel].t.split(' ')[0] + ' →'; }
+  function refresh() { syncPanel(); draw(); }
+  function select(idx) {
+    if (idx === sel) return;
+    sel = idx; syncPanel(); selGrow = 0;
+    tween(360, { onStep: function (e) { selGrow = e; draw(); } });
+  }
   refresh();
 });
 </script>

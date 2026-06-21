@@ -26,7 +26,7 @@ onMounted(() => {
   // Ported verbatim from the wm IIFE (reference lines 2799–2824).
   // Numeric functions come from logic/wm.js (vitest-pinned), which are
   // identical to the original's inline latent(h) and pixel(h) functions.
-  var W = 700, H = 320, padL = 54, padR = 24, padT = 28, padB = 52, eps = 0.05, Hmark = 15, Hmax = 50;
+  var W = 700, H = 320, padL = 54, padR = 24, padT = 46, padB = 52, eps = 0.05, Hmark = 15, Hmax = 50;
   var svg = R.SVG(stage, W, H);
 
   function X(h) { return padL + (h / Hmax) * (W - padL - padR); }
@@ -39,7 +39,7 @@ onMounted(() => {
     svg.appendChild(R.E('line', { x1: x0, y1: y0, x2: x0, y2: y1, stroke: R.C.axis, 'stroke-width': 1.2 }));
     var hUse = trustworthyHorizon(eps, Hmax);
     svg.appendChild(R.E('rect', { x: x0, y: y1, width: X(hUse) - x0, height: y0 - y1, fill: 'rgba(47,203,126,0.07)' }));
-    svg.appendChild(R.TX(x0 + 6, y1 + 2, 'trustworthy zone', { anchor: 'start', fill: R.C.green, size: 10.5, base: 'hanging' }));
+    svg.appendChild(R.TX(x0 + 6, y0 - 6, 'trustworthy zone', { anchor: 'start', fill: R.C.green, size: 10.5 }));
     var pL = '', pP = '', i;
     for (i = 0; i <= Hmax; i++) {
       pL += (i ? ' ' : '') + X(i).toFixed(1) + ',' + Y(latentDivergence(i, eps)).toFixed(1);
@@ -51,9 +51,7 @@ onMounted(() => {
     svg.appendChild(R.E('line', { x1: dx, y1: y1, x2: dx, y2: y0, stroke: '#EAF0F8', 'stroke-width': 1, 'stroke-dasharray': '3 3' }));
     svg.appendChild(R.E('circle', { cx: dx, cy: Y(latentDivergence(Hmark, eps)), r: 5, fill: R.C.green }));
     svg.appendChild(R.E('circle', { cx: dx, cy: Y(pixelDivergence(Hmark, eps)), r: 5, fill: R.C.red }));
-    svg.appendChild(R.TX(x1, Y(pixelDivergence(Hmax, eps)) - 8, 'pixel-space model', { anchor: 'end', fill: R.C.red, size: 11.5, weight: 600 }));
-    svg.appendChild(R.TX(x1, Y(latentDivergence(Hmax, eps)) + 2, 'compact latent model', { anchor: 'end', fill: R.C.green, size: 11.5, weight: 600, base: 'hanging' }));
-    svg.appendChild(R.TX(x0, y1 - 4, 'dream-vs-reality divergence over an imagined rollout', { anchor: 'start', fill: R.C.ink, size: 12, base: 'hanging' }));
+    svg.appendChild(R.TX(x0, 16, 'dream-vs-reality divergence over an imagined rollout', { anchor: 'start', fill: R.C.ink, size: 12, base: 'hanging' }));
     svg.appendChild(R.TX(W / 2, H - 12, 'steps imagined into the future (rollout horizon)  →', { fill: R.C.dim, size: 11.5 }));
   }
 

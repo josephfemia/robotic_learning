@@ -11,6 +11,7 @@
 import { onMounted, ref } from 'vue';
 import Lab from '../components/Lab.vue';
 import R from './rllab.js';
+import { tween } from '../composables/useAnimate.js';
 import { barycentricToXY } from '../logic/worldview.js';
 
 const lab = ref(null);
@@ -32,7 +33,7 @@ onMounted(() => {
     { n: 'Decision Transformer', w: [0.6, 0.3, 0.1], why: 'Sequence-model scaling (Sutton) with outcome conditioning standing in for explicit planning (weak LeCun).' },
     { n: 'JEPA agent (proposed)', w: [0.15, 0.8, 0.05], why: 'Architecture-first: predict in representation space and plan — LeCun in its purest stated form.' },
   ];
-  var sel = 0;
+  var sel = 0, selGrow = 1; // selGrow ∈ [0,1] eases the highlighted dot into focus
   var W = 560, H = 430, svg = R.SVG(stage, W, H);
   var cx = W / 2, A = { x: cx, y: 46 }, B = { x: 70, y: H - 70 }, C = { x: W - 70, y: H - 70 }; // Sutton top, LeCun left, Brooks right
 
@@ -48,8 +49,9 @@ onMounted(() => {
     for (var i = 0; i < methods.length; i++) {
       var p = barycentricToXY(methods[i].w, { A: A, B: B, C: C });
       var on = (i === sel);
-      svg.appendChild(R.E('circle', { cx: p.x, cy: p.y, r: on ? 8 : 5, fill: on ? R.C.cyan : R.C.ink, opacity: on ? 1 : 0.5, stroke: '#0F1422', 'stroke-width': 1.5 }));
-      if (on) svg.appendChild(R.TX(p.x, p.y - 14, methods[i].n, { fill: R.C.cyan, size: 11.5, weight: 600 }));
+      var r = on ? 5 + 3 * selGrow : 5;
+      svg.appendChild(R.E('circle', { cx: p.x, cy: p.y, r: r, fill: on ? R.C.cyan : R.C.ink, opacity: on ? (0.5 + 0.5 * selGrow) : 0.5, stroke: '#0F1422', 'stroke-width': 1.5 }));
+      if (on) { var lbl = R.TX(p.x, p.y - (10 + 4 * selGrow), methods[i].n, { fill: R.C.cyan, size: 11.5, weight: 600 }); lbl.setAttribute('opacity', selGrow); svg.appendChild(lbl); }
     }
   }
 
@@ -67,9 +69,12 @@ onMounted(() => {
 
   methods.forEach(function (m, i) {
     R.btn(wrap, m.n, (i === sel ? 'primary' : null), function () {
+      if (i === sel) return;
       sel = i;
       [].forEach.call(wrap.children, function (b, j) { b.classList.toggle('primary', j === i); });
-      refresh();
+      info.innerHTML = '<b style="color:#36C5D0">' + methods[sel].n + '</b> — ' + methods[sel].why;
+      selGrow = 0;
+      tween(360, { onStep: function (e) { selGrow = e; draw(); } });
     });
   });
 
