@@ -1,4 +1,4 @@
-// useProgress.js — reactive progress state using window.storage contract (NO localStorage)
+// useProgress.js — reactive progress state via the window.storage shim (src/storage.js; localStorage-backed)
 // Verbatim logic from reference/robot-learning-companion.html lines ~2300–2333
 
 import { reactive, computed } from 'vue';

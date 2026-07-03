@@ -42,7 +42,7 @@
         <dt>RT-1 / RT-2</dt><dd><b>Robotics Transformer</b>: RT-1 scaled within one robot (actions as 256 discrete bins); RT-2 fine-tuned a pretrained VLM to emit those action tokens, importing web semantics into control.</dd>
         <dt>OXE</dt><dd><b>Open X-Embodiment</b>: a pooled corpus of 1M+ trajectories from 22 robot types; proved pooling across <em>different</em> robot bodies helps each one (positive cross-embodiment transfer).</dd>
         <dt>Octo / OpenVLA</dt><dd>Open generalist policies trained on OXE — Octo with a diffusion/flow action head, OpenVLA a 7B open re-creation of RT-2 (Mees among the authors) adaptable via LoRA.</dd>
-        <dt>π0 / π0.5 / π*0.6</dt><dd>Physical Intelligence's line: π0 = VLM + flow-matching action expert for 50 Hz control; π0.5 = open-world generalization via heterogeneous co-training + language subtask inference; π*0.6 = RL-from-experience (RECAP: advantage-conditioned policy) that improves past demonstration quality.</dd>
+        <dt>π0 / π0.5 / π*0.6 / π0.7</dt><dd>Physical Intelligence's line: π0 = VLM + flow-matching action expert for 50 Hz control; π0.5 = open-world generalization via heterogeneous co-training + language subtask inference; π*0.6 = RL-from-experience (RECAP: advantage-conditioned policy) that improves past demonstration quality; π0.7 (April 2026) = a steerable generalist with first signs of compositional generalization — recombining trained skills under plain-language coaching, and doing zero-shot (e.g. espresso-machine operation) what π*0.6 needed experience-RL to reach.</dd>
         <dt>LoRA</dt><dd><b>Low-Rank Adaptation</b>: fine-tune a big model by training tiny low-rank weight deltas — cheap downstream adaptation to a new robot/task on consumer GPUs.</dd>
       </dl>
     </div></details>
@@ -90,7 +90,7 @@
       </ul>
     </div>
 
-    <p class="note">Progress you mark here is saved when this page runs inside Claude (and lives only in your account's artifact storage). If you download the file and open it locally, progress lasts for the session only.</p>
+    <p class="note">Progress you mark here is saved in your browser (localStorage) — it survives reloads on this device, and clearing the site's data resets it. It doesn't sync across devices.</p>
 
     <div class="complete-bar">
       <span class="note">Ready? Start with the Primer — it's the foundation everything else stands on.</span>

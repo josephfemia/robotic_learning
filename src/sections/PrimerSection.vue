@@ -6,6 +6,12 @@
       <p class="dek">Three parts: what a robot actually is (Part A), the decision-making skeleton all twelve lectures hang on (Part B), and a Rosetta stone from actuarial mathematics to reinforcement learning (Part C). Read this before Lecture 1; revisit it constantly.</p>
     </div>
 
+    <div class="meta-strip">
+      <span class="chip"><b>Prereqs</b> calculus · linear algebra · basic probability</span>
+      <span class="chip"><b>Time</b> ~60 min</span>
+      <span class="chip"><b>Labs</b> five interactives — arm, dynamics, Bellman, softmax, discount</span>
+    </div>
+
     <h3><span class="knum">PART A</span>What a robot actually is</h3>
     <p>Strip away the science fiction. A robot is <strong>sensors + actuators + a computer, wired into a feedback loop with the physical world</strong>. The computer reads sensors, decides, commands actuators, and the world responds — many times per second, forever. Everything in this course is about what runs inside that loop.</p>
 
@@ -55,19 +61,21 @@
     Things hard for humans (chess, calculus, Go) turned out easy for computers; things trivial for a toddler (picking up a toy, walking on gravel) remain at the frontier of robotics. Evolution spent billions of years optimizing sensorimotor skill and a few millennia on symbolic reasoning — so our intuitions about what's "hard" are exactly backwards. Keep this in mind every time a task in this course looks mundane.</div>
 
     <h3><span class="knum">PART B</span>The decision-making skeleton</h3>
-    <p>Here is the formal frame that Lectures 2–10 all share. An <strong>agent</strong> interacts with an <strong>environment</strong> in discrete time steps. At step \(t\): the agent sees state \(s_t\), picks action \(a_t \sim \pi(\cdot|s_t)\), the environment returns reward \(r_t\) and next state \(s_{t+1} \sim P(\cdot|s_t,a_t)\). This repeats, producing a <strong>trajectory</strong> (or "rollout" / "episode") \(\tau = (s_0,a_0,r_0,s_1,a_1,r_1,\dots)\).</p>
+    <p>Part A left you with a loop that fires many times a second. Part B is the bookkeeping that loop needs: if the reward for an action arrives three hundred steps later, what number should the agent write next to that action today? Getting that ledger right — coherently, recursively, under uncertainty — is the entire formal content of Lectures 2–10. Here is the frame they all share.</p>
+    <p>An <strong>agent</strong> interacts with an <strong>environment</strong> in discrete time steps. At step \(t\): the agent sees state \(s_t\), picks action \(a_t \sim \pi(\cdot|s_t)\), the environment returns reward \(r_t\) and next state \(s_{t+1} \sim P(\cdot|s_t,a_t)\). This repeats, producing a <strong>trajectory</strong> (or "rollout" / "episode") \(\tau = (s_0,a_0,r_0,s_1,a_1,r_1,\dots)\).</p>
     <p>The agent's objective is the expected <strong>return</strong> — discounted cumulative reward:</p>
     <p>$$G_t = r_t + \gamma r_{t+1} + \gamma^2 r_{t+2} + \cdots = \sum_{k=0}^{\infty}\gamma^k r_{t+k}, \qquad \gamma \in [0,1)$$</p>
     <p>Two functions summarize "how good things are," and the entire field is built on them:</p>
     <p>$$V^\pi(s) = \mathbb{E}_\pi\!\left[G_t \mid s_t = s\right] \qquad\qquad Q^\pi(s,a) = \mathbb{E}_\pi\!\left[G_t \mid s_t = s,\, a_t = a\right]$$</p>
     <p>\(V^\pi\) is the expected return from state \(s\) if you follow policy \(\pi\); \(Q^\pi\) is the same but with the first action pinned to \(a\). Their relationship: \(V^\pi(s) = \mathbb{E}_{a\sim\pi}[Q^\pi(s,a)]\). The <strong>advantage</strong> \(A^\pi(s,a) = Q^\pi(s,a) - V^\pi(s)\) measures how much better action \(a\) is than \(\pi\)'s average behavior — it will star in Lecture 5.</p>
-    <p>Because returns are recursive (\(G_t = r_t + \gamma G_{t+1}\)), value functions obey the <strong>Bellman equation</strong>:</p>
-    <p>$$V^\pi(s) = \mathbb{E}_{a\sim\pi,\; s'\sim P}\big[\, r(s,a) + \gamma\, V^\pi(s') \,\big]$$</p>
-    <p>Memorize the shape: <em>value now = expected immediate reward + discounted expected value next</em>. You will see it forty times in this course wearing different costumes.</p>
 
     <h4>Build the Bellman equation from scratch</h4>
-    <p>Before we take that equation as given, build it. Below is a tiny 4-state world: only the last state pays a reward. Click a state to ask 'given what I think my successors are worth, what am I worth?' — repeat, and the values stabilize into exactly the Bellman equation.</p>
+    <p>Before I hand you the equation these definitions obey, earn it. Below is a tiny 4-state world: only the last state pays. Click a state to ask "given what I currently think my successors are worth, what am I worth?" — repeat until nothing changes. The update you are clicking is the most important equation in the course.</p>
     <BellmanDeriveWidget />
+
+    <p>What you just built has a name. Because returns are recursive (\(G_t = r_t + \gamma G_{t+1}\)), value functions obey the <strong>Bellman equation</strong>:</p>
+    <p>$$V^\pi(s) = \mathbb{E}_{a\sim\pi,\; s'\sim P}\big[\, r(s,a) + \gamma\, V^\pi(s') \,\big]$$</p>
+    <p>Memorize the shape — <em>value now = expected immediate reward + discounted expected value next</em> — you just watched it stabilize. You will see it forty times in this course wearing different costumes.</p>
 
     <h4>The three families of solutions</h4>
     <ul>

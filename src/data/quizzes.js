@@ -1,5 +1,5 @@
 /**
- * quizzes.js — single source of truth for all 38 self-check questions.
+ * quizzes.js — single source of truth for all 42 self-check questions.
  *
  * Each object shape:
  *   id       {string}  stable unique key (src + 1-based index within that lecture)
@@ -34,7 +34,7 @@ export const REVIEW_ORDER = ['primer', 'l1', 'l2', 'l3', 'l4', 'l5', 'l6', 'l7',
 
 const quizzes = [
 
-  // ── PRIMER (3 questions) ────────────────────────────────────────────────────
+  // ── PRIMER (4 questions) ────────────────────────────────────────────────────
 
   {
     id: 'primer-1',
@@ -76,6 +76,20 @@ const quizzes = [
       { k: 'd', html: `Contact violates the Markov property` },
     ],
     expl: `<strong>A.</strong> Free-space rigid-body motion follows clean equations \\(M\\ddot q + C\\dot q + g = \\tau\\). Contact adds stick/slip friction, impacts, and deformation — discontinuous, parameter-sensitive physics that's hard to identify. Learning sidesteps explicit modeling by training on experience of the real (or randomized simulated) thing.`,
+  },
+
+  {
+    id: 'primer-4',
+    src: 'primer',
+    correct: 'b',
+    question: `With \\(\\gamma = 0.99\\), roughly how far ahead does an agent effectively "see," and what quantity says so?`,
+    options: [
+      { k: 'a', html: `About 10 steps — \\(\\gamma^{10} \\approx 0.9\\) is where the future starts to fade` },
+      { k: 'b', html: `About 100 steps — the total weight on the future, \\(\\sum_k \\gamma^k = 1/(1-\\gamma) = 100\\), acts as an effective planning horizon` },
+      { k: 'c', html: `Exactly 99 steps, because \\(\\gamma^{99} = 0\\)` },
+      { k: 'd', html: `Infinitely far — every future reward gets nonzero weight, so no horizon can be assigned` },
+    ],
+    expl: `<strong>B.</strong> Geometric weights never actually reach zero (so C is false and D is technically true but useless); the honest one-number summary is the total mass \\(\\sum_k \\gamma^k = 1/(1-\\gamma)\\), which behaves like a horizon: \\(\\gamma=0.99\\) → ~100 steps, \\(\\gamma=0.9\\) → ~10. This single free parameter silently sets how far-sighted every algorithm in the course is — and it's the same \\(v = 1/(1+i)\\) you discount cash flows with.`,
   },
 
   // ── L1 (3 questions) ────────────────────────────────────────────────────────
@@ -210,7 +224,7 @@ const quizzes = [
     expl: `<strong>D.</strong> MSE-optimal prediction is the conditional mean; the mean of "veer left" and "veer right" is "straight ahead." Multimodal action distributions need multimodal policy classes — mixtures, EBMs, or diffusion (L6).`,
   },
 
-  // ── L4 (3 questions) ────────────────────────────────────────────────────────
+  // ── L4 (4 questions) ────────────────────────────────────────────────────────
 
   {
     id: 'l4-1',
@@ -252,6 +266,20 @@ const quizzes = [
       { k: 'd', html: `Both acting and forming targets require \\(\\max_a Q(s,a)\\) — an inner nonconvex optimization over \\(\\mathbb R^7\\) at every step` },
     ],
     expl: `<strong>D.</strong> The max is the engine of Q-learning, and it's intractable over continuous high-dimensional actions (discretization explodes exponentially). Escapes: restructure actions (Zeng's pixel-wise Q-maps), or maintain an explicit actor — Lecture 5.`,
+  },
+
+  {
+    id: 'l4-4',
+    src: 'l4',
+    correct: 'b',
+    question: `DQN's target network addresses which instability, specifically?`,
+    options: [
+      { k: 'a', html: `Consecutive transitions are temporally correlated, breaking the i.i.d. assumption of SGD` },
+      { k: 'b', html: `The regression target \\(r + \\gamma\\max_{a'}Q_\\phi(s',a')\\) moves every time \\(\\phi\\) updates — the network chases its own freshly-updated estimate` },
+      { k: 'c', html: `The \\(\\max\\) over noisy Q-estimates systematically biases the target high` },
+      { k: 'd', html: `\\(\\max_a Q(s,a)\\) is intractable over continuous action spaces` },
+    ],
+    expl: `<strong>B.</strong> Bootstrapped targets are built from the very parameters being trained, so this isn't gradient descent on any fixed objective — it's regression on a moving target. Freezing a copy \\(\\phi^-\\) and updating it only periodically turns that into a sequence of quasi-stationary regression problems. Each distractor names a <em>real</em> §4.4 problem with a <em>different</em> cure: correlation → the replay buffer (A), overestimation bias → Double DQN (C), continuous actions → the action-space wall that actor methods answer in L5 (D).`,
   },
 
   // ── L5 (4 questions) ────────────────────────────────────────────────────────
@@ -331,15 +359,15 @@ const quizzes = [
   {
     id: 'l6-2',
     src: 'l6',
-    correct: 'd',
-    question: `Action chunking (predicting the next \\(H\\) actions jointly) primarily helps because:`,
+    correct: 'c',
+    question: `Why did π0 choose a flow-matching head over diffusion for 50 Hz control?`,
     options: [
-      { k: 'a', html: `It reduces the network's output dimension` },
-      { k: 'b', html: `It makes the task Markovian` },
-      { k: 'c', html: `It removes the need for observations` },
-      { k: 'd', html: `Committing to a temporally coherent short plan reduces per-step re-decision errors and captures correlations in demonstrated motion` },
+      { k: 'a', html: `Flow matching is strictly more expressive than diffusion` },
+      { k: 'b', html: `Flow matching needs no training data — the velocity field is known analytically` },
+      { k: 'c', html: `Its learned noise→data paths are nearly straight, so sampling — integrating the ODE \\(\\dot x = v_\\theta(x,t)\\) — needs only a few network evaluations, fitting a real-time latency budget` },
+      { k: 'd', html: `Flow matching guarantees the sampled action distribution is unimodal` },
     ],
-    expl: `<strong>D.</strong> Re-deciding every control tick lets noise jitter the policy between modes mid-motion (compounding errors, L3). A sampled chunk is internally consistent — one mode, executed — with receding-horizon regeneration restoring reactivity. The same logic powers ACT in L7.`,
+    expl: `<strong>C.</strong> Training regresses the constant velocity \\(x_0 - \\varepsilon\\) along straight interpolation paths \\(x_t = (1-t)\\varepsilon + t\\,x_0\\), so the learned field can be integrated in a handful of big steps where diffusion's curved, noisy reverse chain needs many — and step count <em>is</em> the latency budget when a policy must emit ~50 action chunks per second. Both model the same lumpy \\(p(a|o)\\) (A is false; D is backwards — multimodality is the whole point), and the field is learned from demos like anything else (B). "Flow matching ≈ diffusion with straight roads."`,
   },
 
   {
@@ -348,7 +376,7 @@ const quizzes = [
     correct: 'a',
     question: `DSRL runs RL in a frozen diffusion policy's latent-noise space rather than directly on robot actions. The chief advantage:`,
     options: [
-      { k: 'a', html: `The search space is low-dimensional and every point decodes to a plausible, demo-like action — safe, sample-efficient exploration` },
+      { k: 'a', html: `The search space is demo-shaped: every point decodes to a plausible, demo-like action — safe, sample-efficient exploration` },
       { k: 'b', html: `It removes the need for a reward function` },
       { k: 'c', html: `Noise vectors are easier to store in replay buffers` },
       { k: 'd', html: `It guarantees convergence to the global optimum` },
@@ -576,7 +604,7 @@ const quizzes = [
     expl: `<strong>D.</strong> Brooks's critique targets the architecture, not the implementation technology: deliberation over an internal (now linguistic) model, loosely coupled to real-time sensing, fails when reality changes mid-plan. Modern hierarchical answers (fast reactive layer + slow reasoner, L10) are, fittingly, a Brooks–LLM compromise.`,
   },
 
-  // ── L12 (1 question) ────────────────────────────────────────────────────────
+  // ── L12 (3 questions) ───────────────────────────────────────────────────────
 
   {
     id: 'l12-1',
@@ -590,6 +618,34 @@ const quizzes = [
       { k: 'd', html: `Imitation and RL are incompatible paradigms` },
     ],
     expl: `<strong>B.</strong> The pattern spans BC's compounding errors, the deadly triad, critic exploitation, offline extrapolation, and world-model exploitation — and its cures echo from DAgger to CQL to Dreamer's short imaginations to π*0.6's grounded experience. If one idea from this course shapes how you read every future paper, make it this one.`,
+  },
+
+  {
+    id: 'l12-2',
+    src: 'l12',
+    correct: 'a',
+    question: `Abbeel's apprenticeship-learning work with Ng is the intellectual grandparent of which course thread?`,
+    options: [
+      { k: 'a', html: `Lecture 3's imitation learning — extracting behavior from expert demonstrations` },
+      { k: 'b', html: `Lecture 8's world models` },
+      { k: 'c', html: `Lecture 5's PPO` },
+      { k: 'd', html: `Lecture 10's SayCan-style LLM planning` },
+    ],
+    expl: `<strong>A.</strong> Apprenticeship/inverse RL with Ng — autonomous helicopter aerobatics learned from demonstration — established "watch an expert, recover the behavior (or the reward behind it)" as a research program: L3's intellectual grandparent. C is the tempting near-miss: Abbeel's <em>later</em> Berkeley years produced TRPO and the policy-gradient lineage behind PPO, but that's a different (and descendant) branch of his arc. His career then runs the rest of the course in order — deep RL, then Covariant's robot foundation models — which is exactly why he's a guest worth hearing.`,
+  },
+
+  {
+    id: 'l12-3',
+    src: 'l12',
+    correct: 'c',
+    question: `Fox's <em>Probabilistic Robotics</em> lineage — Bayesian filtering, belief tracking — most directly anticipates which modern component?`,
+    options: [
+      { k: 'a', html: `PPO's clipped objective` },
+      { k: 'b', html: `Action chunking in ACT and Diffusion Policy` },
+      { k: 'c', html: `The RSSM's learned latent belief state at the heart of Dreamer (L8)` },
+      { k: 'd', html: `Reward shaping` },
+    ],
+    expl: `<strong>C.</strong> <em>Probabilistic Robotics</em> cast the robot as an uncertainty-tracking machine: maintain a belief over state, update it as observations arrive. The RSSM is that idea reborn as learning — a learned nonlinear Kalman filter whose deterministic path propagates state and whose stochastic latent carries posterior uncertainty, trained by ELBO instead of derived. That's the question to bring to his lecture: are world models filtering reborn? His hands built the original. (A, B, D belong to entirely different threads — policy optimization, imitation architecture, reward design.)`,
   },
 
 ];

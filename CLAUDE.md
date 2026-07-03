@@ -51,8 +51,9 @@ Always run `npm test` and `npm run build` before considering a change done.
    balanced. In `.vue` templates, **HTML-escape raw `<`/`>` inside math as
    `&lt;`/`&gt;`** or the Vue template parser will choke (e.g. Robbins–Monro
    `\sum\alpha^2 &lt; \infty`).
-3. **Persistence uses `window.storage`** (key `rlc-progress-v1`) with an in-memory
-   fallback. **No `localStorage`/`sessionStorage`.**
+3. **Persistence uses the `window.storage` shim (`src/storage.js`)** — localStorage-
+   backed with an in-memory fallback (key `rlc-progress-v1`). Components never touch
+   `localStorage` directly; always go through `window.storage`.
 4. **Motion is the in-house `useAnimate` layer.** No manim / GSAP / anime.js.
    Discrete state changes should ease (via `tween`); slider drags stay instant;
    everything degrades to instant under `prefers-reduced-motion`.

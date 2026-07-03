@@ -4,8 +4,8 @@ import quizzes, { SOURCE_LABELS, REVIEW_ORDER } from './quizzes.js';
 const VALID_SRC_IDS = ['primer', 'l1', 'l2', 'l3', 'l4', 'l5', 'l6', 'l7', 'l8', 'l9', 'l10', 'l11', 'l12'];
 
 describe('quizzes data', () => {
-  it('exports exactly 38 questions', () => {
-    expect(quizzes.length).toBe(38);
+  it('exports exactly 42 questions', () => {
+    expect(quizzes.length).toBe(42);
   });
 
   it('every question has a correct key matching one of its options', () => {
@@ -59,11 +59,11 @@ describe('quizzes data', () => {
     for (const q of quizzes) {
       counts[q.src] = (counts[q.src] || 0) + 1;
     }
-    expect(counts.primer).toBe(3);
+    expect(counts.primer).toBe(4);
     expect(counts.l1).toBe(3);
     expect(counts.l2).toBe(3);
     expect(counts.l3).toBe(3);
-    expect(counts.l4).toBe(3);
+    expect(counts.l4).toBe(4);
     expect(counts.l5).toBe(4);
     expect(counts.l6).toBe(3);
     expect(counts.l7).toBe(3);
@@ -71,7 +71,7 @@ describe('quizzes data', () => {
     expect(counts.l9).toBe(3);
     expect(counts.l10).toBe(3);
     expect(counts.l11).toBe(3);
-    expect(counts.l12).toBe(1);
+    expect(counts.l12).toBe(3);
   });
 
   it('SOURCE_LABELS exports all 13 source ids', () => {

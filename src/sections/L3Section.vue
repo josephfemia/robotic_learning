@@ -23,12 +23,12 @@
     <h3><span class="knum">3.1</span>Behavioral cloning: it's just MLE</h3>
     <p>Collect demonstrations \(\mathcal D = \{(s_i, a_i^{\text{expert}})\}\) — a human teleoperates the robot; you log observations and actions. <strong>Behavioral cloning (BC)</strong> fits a policy by maximum likelihood:</p>
     <p>$$\theta^* = \arg\max_\theta \sum_{(s,a)\in\mathcal D} \log \pi_\theta(a \mid s)$$</p>
-    <p>For a Gaussian policy with fixed variance this is literally mean-squared-error regression onto expert actions; for discretized actions it's cross-entropy. Everything you know about supervised learning applies: architectures, augmentation, regularization. No reward function, no exploration, no instability. BC is the workhorse that quietly powers most of L6–L9's "policies trained on demonstrations." So what's the catch?</p>
+    <p>For a Gaussian policy with fixed variance this is literally mean-squared-error regression onto expert actions (because \(\log\mathcal N(a;\mu_\theta(s),\sigma^2 I)=-\lVert a-\mu_\theta(s)\rVert^2/2\sigma^2+\text{const}\) — maximizing log-likelihood is minimizing squared error to the expert action); for discretized actions it's cross-entropy. Everything you know about supervised learning applies: architectures, augmentation, regularization. No reward function, no exploration, no instability. BC is the workhorse that quietly powers most of L6–L9's "policies trained on demonstrations." So what's the catch?</p>
 
     <h3><span class="knum">3.2</span>The catch: compounding errors</h3>
     <p>BC trains on the <strong>expert's</strong> state distribution \(d^{\pi^*}\) but is executed under its <strong>own</strong> distribution \(d^{\pi_\theta}\). A small error steers the robot to a state slightly off the demonstration manifold — a state the expert never visited, so the policy has no idea what to do there — producing a bigger error, and the trajectory spirals away. Supervised learning's i.i.d. assumption is violated <em>by the policy itself</em>. This is covariate shift where the model causes the shift.</p>
-    <p>Ross &amp; Bagnell made it quantitative. Suppose the learned policy errs with probability \(\le \epsilon\) <em>on the expert's distribution</em>. Over a horizon of \(T\) steps:</p>
-    <p>$$J(\pi_{\text{BC}}) - J(\pi^*) \;=\; O(\epsilon T^2) \qquad \text{(worst case)}$$</p>
+    <p>Ross &amp; Bagnell made it quantitative. Suppose the learned policy errs with probability \(\le \epsilon\) <em>on the expert's distribution</em>. Over a horizon of \(T\) steps (writing \(J(\pi)\) for the policy's expected total reward over an episode — the Primer's objective in one symbol; Lecture 5 adopts it officially):</p>
+    <p>$$J(\pi^*) - J(\pi_{\text{BC}}) \;\le\; O(\epsilon T^2) \qquad \text{(worst case)}$$</p>
     <p><strong>Quadratic</strong> in horizon — versus the \(O(\epsilon T)\) you'd naively expect from \(T\) independent chances to err.</p>
 
     <details class="dive"><summary>Going deeper: where the \(T^2\) comes from (sketch you can reconstruct)</summary><div class="dive-body">
