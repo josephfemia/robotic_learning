@@ -48,7 +48,7 @@
     </div></details>
 
     <h4>Trace the derivation: from objective to update rule</h4>
-    <p>Let's trace how the objective becomes the update rule. Every line below is an exact rewrite — no approximation until we sample. Step through to see where the log comes from.</p>
+    <p>The derivation you just read, replayed one exact rewrite at a time — no approximation until we sample. Step through and watch the log enter at your own pace.</p>
     <PgTransformWidget />
 
     <h4>Watch a policy learn from reward alone</h4>
@@ -175,7 +175,7 @@ for iteration in range(N):
     <p><strong>Sim-to-real</strong> is the other pillar. Train in simulation (free, fast, safe), deploy on hardware whose friction, masses, latencies, and lighting differ. The standard arsenal: <em>domain randomization</em> — randomize those parameters during training so the policy must be robust to a <em>family</em> of worlds, hoping reality lands inside it; <em>asymmetric actor-critic</em> — the critic (training-only) sees privileged sim state (true contacts, friction coefficients), while the actor sees only deployable observations; the critic's job is variance reduction, so feeding it ground truth is free accuracy. And <em>teacher–student distillation</em> — train a teacher policy with privileged state via RL, then distill it (by DAgger-style imitation, Lecture 3's tool!) into a student that runs from realistic sensors. Finally, <em>real-to-sim system identification</em>: measure or fit reality's parameters (even training a small network to mimic the actuators, as in ANYmal's actuator nets) so the randomized family is centered on the truth. This is the actual pipeline behind most legged-robot results you've seen.</p>
 
     <h4>Domain randomization, in one picture</h4>
-    <p>The sim-to-real intuition is easy to state and easier to feel. A policy trained only at the simulator's nominal physics is a sharp spike: superb at exactly those parameters, fragile the moment reality's friction or mass differs. Randomize those parameters during training and you trade a little peak performance for a broad plateau — robust across a whole <em>family</em> of worlds, in the hope that reality lands somewhere inside it. Slide the real-world friction and watch the un-randomized policy fall off a cliff while the randomized one holds.</p>
+    <p>A policy trained only at the simulator's nominal physics is a sharp spike: superb at exactly those parameters, fragile the moment reality differs. Randomization trades a little peak for a broad plateau. Slide the real-world friction and watch the un-randomized policy fall off a cliff while the randomized one holds.</p>
     <DomrandWidget />
 
     <h3><span class="knum">5.9</span>Offline RL: when the robot can't practice</h3>

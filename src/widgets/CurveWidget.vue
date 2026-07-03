@@ -63,7 +63,7 @@ onMounted(() => {
     svg.appendChild(R.E('line', { x1: bx, y1: y1, x2: bx, y2: y0, stroke: R.C.dim, 'stroke-width': 1, 'stroke-dasharray': '4 4' }));
     svg.appendChild(R.E('circle', { cx: bx, cy: Y(bcRegret(eps, Tcur)), r: 4, fill: R.C.red }));
     svg.appendChild(R.E('circle', { cx: bx, cy: Y(daggerRegret(eps, Tcur)), r: 4, fill: R.C.green }));
-    svg.appendChild(R.TX(X(Tmax) - 4, Y(bcRegret(eps, Tmax)) + 4, 'behavioral cloning ~ ε·T²', { anchor: 'end', fill: R.C.red, size: 12, weight: 600, base: 'hanging' }));
+    svg.appendChild(R.TX(X(Tmax) - 14, Y(bcRegret(eps, Tmax)) + 10, 'behavioral cloning ~ ε·T²', { anchor: 'end', fill: R.C.red, size: 12, weight: 600, base: 'hanging' }));
     svg.appendChild(R.TX(X(Tmax) - 4, Y(daggerRegret(eps, Tmax)) - 6, 'DAgger ~ ε·T', { anchor: 'end', fill: R.C.green, size: 12, weight: 600 }));
     svg.appendChild(R.TX((x0 + x1) / 2, y0 + 18, 'task horizon  T  →', { fill: R.C.dim, size: 11.5 }));
     var yl = R.TX(0, 0, 'expected regret →', { fill: R.C.ink, size: 11.5 });

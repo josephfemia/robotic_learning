@@ -567,3 +567,16 @@ other eleven. **H7 · P3 · Primer** — only section without a meta strip (no t
 
 Full lens reports (verbatim agent outputs) were not preserved separately; this document is
 the consolidated record.
+
+---
+
+## Implementation status (2026-07-03, branch `phase3-uplift`)
+
+All blocks applied across three commits (prose pass; widget pass; audit fixes). A
+three-way final audit (spec compliance, content seams, browser functional/visual pass)
+verified: every item present or consciously deviated, zero console errors, quiz system
+and localStorage persistence working. Approved deviations: Gemini Robotics table row
+skipped (sentence only); L1 papers note uses neutral phrasing; BonWidget note/framing
+switched to the numerically honest rise-peak-decline story; DriftWidget adopted the
+core's t=0-on-demo-line semantics; quiz count is now 42. Known cosmetic non-issue:
+DynamicsWidget's arm crosses the decorative ground hatching at extreme joint angles.

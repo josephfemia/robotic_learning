@@ -109,14 +109,14 @@ onMounted(() => {
         svg.appendChild(R.E('line', { x1: px, y1: yz, x2: px, y2: evY, stroke: R.C.green, 'stroke-width': 2.5, opacity: dotFade }));
         svg.appendChild(R.E('circle', { cx: px, cy: selY, r: 6, fill: 'none', stroke: R.C.orange, 'stroke-width': 2.5, opacity: dotFade }));
         svg.appendChild(R.E('circle', { cx: px, cy: evY, r: 6, fill: R.C.green, opacity: dotFade }));
-        var ty = evY - 11 < yTop + 12 ? evY + 18 : evY - 11;
+        var ty = evY - 14 < yTop + 12 ? evY + 20 : evY - 14;
         var lbl1 = R.TX(px, ty, fmtV(sample.value), { fill: R.C.green, size: 11, weight: 600 });
         lbl1.setAttribute('opacity', dotFade);
         svg.appendChild(lbl1);
       } else {
         svg.appendChild(R.E('line', { x1: px, y1: yz, x2: px, y2: selY, stroke: R.C.orange, 'stroke-width': 2.5, opacity: dotFade }));
         svg.appendChild(R.E('circle', { cx: px, cy: selY, r: 6, fill: R.C.orange, opacity: dotFade }));
-        var ty2 = selY - 11 < yTop + 12 ? selY + 18 : selY - 11;
+        var ty2 = selY - 14 < yTop + 12 ? selY + 20 : selY - 14;
         var lbl2 = R.TX(px, ty2, fmtV(sample.value), { fill: R.C.orange, size: 11, weight: 600 });
         lbl2.setAttribute('opacity', dotFade);
         svg.appendChild(lbl2);

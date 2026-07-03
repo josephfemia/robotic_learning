@@ -71,13 +71,15 @@ onMounted(() => {
   function setA(target) {
     if (As === target) return;
     var from = Adisp; As = target;
+    bPos.className = 'lab-btn' + (target === 1 ? ' primary' : '');
+    bNeg.className = 'lab-btn' + (target === -1 ? ' primary' : '');
     tween(450, {
       onStep(e) { Adisp = from + (target - from) * e; draw(); },
       onDone() { Adisp = target; draw(); },
     });
   }
-  R.btn(ctr, 'Advantage A > 0', 'primary', function () { setA(1); });
-  R.btn(ctr, 'Advantage A < 0', null, function () { setA(-1); });
+  var bPos = R.btn(ctr, 'Advantage A > 0', 'primary', function () { setA(1); });
+  var bNeg = R.btn(ctr, 'Advantage A < 0', null, function () { setA(-1); });
   R.legend(stage, [[R.C.orange, 'unclipped r·A'], [R.C.cyan, 'PPO clipped objective']]);
   draw();
 });

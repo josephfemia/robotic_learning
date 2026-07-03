@@ -70,10 +70,12 @@ onMounted(() => {
     svg.appendChild(R.E('circle', { cx: mx, cy: my, r: 5, fill: prompt <= maxData ? R.C.green : R.C.red }));
     svg.appendChild(R.TX(x0, y1 - 4, 'achieved return vs prompted return-to-go', { anchor: 'start', fill: R.C.ink, size: 12, base: 'hanging' }));
     svg.appendChild(R.TX(W / 2, H - 12, 'return-to-go you prompt at test time  →', { fill: R.C.dim, size: 11.5 }));
-    // Clamp the annotation above the dot rug so it never sits in the dots at
-    // low prompts (rug band is y0-24…y0-8; the orange label sits at y0-32).
-    var ty = Math.min(my - 10, y0 - 44);
-    svg.appendChild(R.TX(mx + (mx > W - 210 ? -8 : 8), ty, prompt <= maxData ? 'in-distribution: it delivers' : 'past the last dot: no data to imitate, no “stitching”', { anchor: (mx > W - 210 ? 'end' : 'start'), fill: '#EAF0F8', size: 11 }));
+    // Annotation placement: above the marker, clamped clear of the dot rug —
+    // and at very low prompts (marker in the bottom-left, near the support
+    // line and the rug) it moves to the clear band under the title instead.
+    var ty = Math.min(my - 12, y0 - 44);
+    if (prompt < 0.2) ty = y1 + 26;
+    svg.appendChild(R.TX(mx + (mx > W - 210 ? -12 : 8), ty, prompt <= maxData ? 'in-distribution: it delivers' : 'past the last dot: no data to imitate, no “stitching”', { anchor: (mx > W - 210 ? 'end' : 'start'), fill: '#EAF0F8', size: 11 }));
   }
 
   // Slider drag: instant redraw.

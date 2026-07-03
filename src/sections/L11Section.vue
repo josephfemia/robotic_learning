@@ -36,7 +36,7 @@
     <p><strong>Evaluation.</strong> Quietly the field's most serious illness. No ImageNet: real-robot evals are slow, expensive, lab-specific, and statistically underpowered (20 trials per task is common — your actuarial soul should wince at those confidence intervals); simulation benchmarks (CALVIN, SIMPLER) only partially predict reality; cherry-picked demo videos distort perceived progress. Reproducibility and honest uncertainty quantification are open <em>scientific</em> problems, not just logistics.</p>
 
     <h4>Run the underpowered eval yourself</h4>
-    <p>Can 20 trials per task tell an 80%-success policy from a 90% one? You already know the answer professionally — you'd never set a rate on n=20 — now watch robotics papers ignore it. Below, two policies with <em>known</em> true rates face the field's standard evaluation: rerun it a few times and watch the "winner" flip, then find the n where the confidence intervals actually separate. It is not 20.</p>
+    <p>Can 20 trials tell an 80%-success policy from a 90% one? You already know the answer professionally — now watch robotics papers ignore it. Below, two policies with <em>known</em> true rates face the field's standard evaluation: rerun it a few times and watch the "winner" flip, then find the n where the confidence intervals actually separate. It is not 20.</p>
     <EvalWidget />
 
     <p><strong>Reliability and safety.</strong> 80% success demos well; homes need 99.9%+ with graceful failure. The gap between those numbers is where deployment lives: uncertainty estimation, runtime monitors, safe recovery, formal constraints around learned components — thin literatures all, and (as L10 noted) verification in the physical world is intrinsically hard.</p>

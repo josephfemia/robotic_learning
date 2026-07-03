@@ -80,8 +80,12 @@ onMounted(() => {
     // --- Curve panel: the outcome, accumulated over many batches --------
     svg.appendChild(R.TX(xc0, 12, 'true success of the pick vs N', { anchor: 'start', fill: R.C.ink, size: 10.5, base: 'hanging' }));
     var peak = Math.max.apply(null, disp);
-    var up = disp[disp.length - 1] >= peak - 0.02;
-    svg.appendChild(R.TX(xc1, 28, up ? 'more N keeps helping' : 'past the peak: more N HURTS', { anchor: 'end', fill: up ? R.C.green : R.C.red, size: 10.5, weight: 600, base: 'hanging' }));
+    var last = disp[disp.length - 1];
+    // Three regimes: still climbing, flat (verifier too weak for N to matter), past the peak.
+    var up = last >= peak - 0.02 && last > disp[0] + 0.02;
+    var flat = !up && last >= peak - 0.02;
+    var vCol = up ? R.C.green : (flat ? R.C.dim : R.C.red);
+    svg.appendChild(R.TX(xc1, 28, up ? 'more N keeps helping' : (flat ? 'flat: verifier too weak for N to matter' : 'past the peak: more N HURTS'), { anchor: 'end', fill: vCol, size: 10.5, weight: 600, base: 'hanging' }));
 
     for (var g = 0; g <= 2; g++) {
       var yy = Ys(g / 2);
@@ -90,9 +94,9 @@ onMounted(() => {
     }
     var dPath = '';
     for (var k = 0; k < Ns.length; k++) dPath += (k ? 'L' : 'M') + Xc(k).toFixed(1) + ' ' + Ys(disp[k]).toFixed(1);
-    svg.appendChild(R.E('path', { d: dPath, fill: 'none', stroke: up ? R.C.green : R.C.red, 'stroke-width': 2.2 }));
+    svg.appendChild(R.E('path', { d: dPath, fill: 'none', stroke: vCol, 'stroke-width': 2.2 }));
     for (k = 0; k < Ns.length; k++) {
-      svg.appendChild(R.E('circle', { cx: Xc(k), cy: Ys(disp[k]).toFixed(1), r: 2.8, fill: up ? R.C.green : R.C.red }));
+      svg.appendChild(R.E('circle', { cx: Xc(k), cy: Ys(disp[k]).toFixed(1), r: 2.8, fill: vCol }));
       svg.appendChild(R.TX(Xc(k), y0s + 6, '' + Ns[k], { fill: R.C.dim, size: 8.5, base: 'hanging' }));
     }
     svg.appendChild(R.E('circle', { cx: Xc(nIdx), cy: Ys(disp[nIdx]).toFixed(1), r: 6.5, fill: 'none', stroke: R.C.orange, 'stroke-width': 2 }));

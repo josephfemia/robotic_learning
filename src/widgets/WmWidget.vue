@@ -66,7 +66,9 @@ onMounted(() => {
     // Trustworthy zone: where the latent fan still hugs the real line.
     var hUse = trustworthyHorizon(eps, Hmax);
     svg.appendChild(R.E('rect', { x: x0, y: y1, width: Math.max(0, X(hUse) - x0), height: y0 - y1, fill: 'rgba(47,203,126,0.07)' }));
-    svg.appendChild(R.TX(x0 + 6, y0 - 6, 'trustworthy zone', { anchor: 'start', fill: R.C.green, size: 10.5 }));
+    // Label sits right of the imagination-cutoff line at small horizons, so the
+    // dashed cutoff never strikes through the text.
+    svg.appendChild(R.TX(Math.max(x0 + 6, X(Hmark) + 8), y0 - 6, 'trustworthy zone', { anchor: 'start', fill: R.C.green, size: 10.5 }));
     // The one real trajectory — continues regardless of how far you imagine.
     svg.appendChild(R.E('line', { x1: x0, y1: ymid, x2: x1, y2: ymid, stroke: R.C.cyan, 'stroke-width': 2, 'stroke-dasharray': '6 5' }));
     // Fans, cut off at the imagination horizon: pixel (wide) under latent (narrow).
