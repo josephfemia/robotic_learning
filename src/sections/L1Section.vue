@@ -74,6 +74,7 @@
         <li><span class="rtag">Slides</span><a href="https://cvg.ethz.ch/lectures/Robot-Learning/lectures/lecture1_intro.pdf" target="_blank" rel="noopener">lecture1_intro.pdf</a></li>
         <li><span class="rtag">Recording</span><a href="https://www.youtube.com/watch?v=X0k14u6pSxw" target="_blank" rel="noopener">YouTube recording — Lecture 1</a> · <a href="https://www.youtube.com/playlist?list=PLPU18BnWYUZJx3_d901-GD6BGpeWwE2vx" target="_blank" rel="noopener">YouTube playlist</a></li>
         <li><span class="rtag">Homework</span><a href="https://github.com/mees-robot-learning-course/ethz-course-2026/tree/main/hw1_pytorch_tutorial" target="_blank" rel="noopener">HW1: PyTorch &amp; NumPy tutorial</a> — do it even if PyTorch is familiar; it calibrates you to the course's conventions</li>
+        <li><span class="rtag">Note</span>No discussion papers this week — the reading load starts with Lecture 2. Week 1's job is the map, not the literature.</li>
       </ul>
     </div>
 

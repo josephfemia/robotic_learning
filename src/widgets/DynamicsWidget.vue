@@ -12,7 +12,7 @@ import { onMounted, ref } from 'vue';
 import Lab from '../components/Lab.vue';
 import R from './rllab.js';
 import { forwardKinematics } from '../logic/arm.js';
-import { massMatrix, coriolis, gravity, DYNAMICS_CONSTANTS } from '../logic/dynamics.js';
+import { torqueComponents, TORQUE_DISPLAY_MAX, DYNAMICS_CONSTANTS } from '../logic/dynamics.js';
 
 // ---------------------------------------------------------------------------
 // Note (KaTeX allowed here — rendered by lab-note via MathJax/KaTeX loader)
@@ -50,11 +50,17 @@ onMounted(() => {
   const pxL2 = DL2 * PX_PER_M;    //  80
   const ox = 155, oy = H * 0.52;  // shoulder origin
 
-  // Bar chart layout for torque contributions
-  const BAR_X = 400;    // left edge of bar panel (clear of arm's ≈357px reach)
-  const BAR_W = 300;    // panel width (400–700)
-  const BAR_MAX_H = 80; // max bar height (px) for normalised torques
-  const TAU_SCALE = 15; // N·m per pixel (so 12 N·m → 12/15 = 0.8 * BAR_MAX_H)
+  // Bar chart layout for torque contributions (F9: one SHARED N·m scale).
+  // Every bar maps |τ| / TORQUE_DISPLAY_MAX (= 12 N·m, the reachable extreme
+  // pinned in dynamics.test.js) onto the same half-width, diverging left/right
+  // from a zero line — so equal torques always render at equal lengths and
+  // sign is visible as direction, not just text.
+  const BAR_X   = 400;                 // left edge of bar panel (clear of arm's ≈357px reach)
+  const BAR_W   = 300;                 // panel width (400–700)
+  const TRACK_X = BAR_X + 10;          // track left edge (410)
+  const TRACK_W = 190;                 // track width (410–600; row labels live at 608+)
+  const ZERO_X  = TRACK_X + TRACK_W / 2; // shared zero line (505)
+  const HALF_W  = TRACK_W / 2;         // 95 px ↔ TORQUE_DISPLAY_MAX N·m
 
   // State
   let q1 = 0.5, q2 = 0.4;       // joint angles (rad)
@@ -114,15 +120,8 @@ onMounted(() => {
     if (Math.abs(qd2) > 0.05) drawVArrow(svg, p.x1, p.y1 - 16, qd2, COL_CORIOLIS);
 
     // ---- TORQUE BARS ----
-    const M  = massMatrix([q1, q2]);
-    const Cv = coriolis([q1, q2], [qd1, qd2]);
-    const gv = gravity([q1, q2]);
-
-    // Inertia contribution: M * qdd_nominal
-    const iner = [
-      M[0][0] * QDD_NOMINAL[0] + M[0][1] * QDD_NOMINAL[1],
-      M[1][0] * QDD_NOMINAL[0] + M[1][1] * QDD_NOMINAL[1],
-    ];
+    // All per-term numerics come from the core (logic/dynamics.js).
+    const tc = torqueComponents([q1, q2], [qd1, qd2], QDD_NOMINAL);
 
     // Panel header
     svg.appendChild(R.TX(BAR_X + BAR_W / 2, 28, 'Torque contributions (N·m)', {
@@ -132,19 +131,20 @@ onMounted(() => {
       fill: R.C.dim, size: 10.5,
     }));
 
-    // Draw bars for joint 1 and joint 2
-    drawJointBars(svg, BAR_X + 10,  80, 'Joint 1  τ₁', iner[0], Cv[0], gv[0]);
-    drawJointBars(svg, BAR_X + 10, 230, 'Joint 2  τ₂', iner[1], Cv[1], gv[1]);
+    // Draw bars for joint 1 and joint 2 (same shared scale for both joints)
+    drawJointBars(svg,  80, 'Joint 1  τ₁', tc.inertia[0], tc.coriolis[0], tc.gravity[0]);
+    drawJointBars(svg, 230, 'Joint 2  τ₂', tc.inertia[1], tc.coriolis[1], tc.gravity[1]);
+
+    // Shared N·m axis under the bar groups (one scale for every bar above)
+    drawTorqueAxis(svg, 330);
 
     // Total torque readout
-    const tau1 = iner[0] + Cv[0] + gv[0];
-    const tau2 = iner[1] + Cv[1] + gv[1];
     svg.appendChild(R.TX(BAR_X + BAR_W / 2, H - 52,
-      'τ₁ = ' + tau1.toFixed(2) + ' N·m', {
+      'τ₁ = ' + tc.total[0].toFixed(2) + ' N·m', {
         fill: '#EAF0F8', size: 12.5, weight: 600,
       }));
     svg.appendChild(R.TX(BAR_X + BAR_W / 2, H - 34,
-      'τ₂ = ' + tau2.toFixed(2) + ' N·m', {
+      'τ₂ = ' + tc.total[1].toFixed(2) + ' N·m', {
         fill: '#EAF0F8', size: 12.5, weight: 600,
       }));
 
@@ -196,15 +196,19 @@ onMounted(() => {
     }));
   }
 
-  // Draw grouped horizontal bars for one joint's three torque contributions
-  function drawJointBars(svg, bx, by, label, inerVal, corVal, gravVal) {
+  // Format a torque value with a true minus sign (Unicode, not hyphen)
+  function fmtTau(v) {
+    return (v < 0 ? '−' : '') + Math.abs(v).toFixed(2);
+  }
+
+  // Draw grouped horizontal bars for one joint's three torque contributions.
+  // SHARED scale: HALF_W px ↔ TORQUE_DISPLAY_MAX N·m for every bar of both
+  // joints; bars diverge from the ZERO_X line (right = +, left = −).
+  function drawJointBars(svg, by, label, inerVal, corVal, gravVal) {
     const BH = 20;   // bar height
     const GAP = 8;   // gap between bars
-    const MAX_W = 115; // maximum bar width (pixels)
-    // Find max abs to normalise within this joint's panel
-    const maxAbs = Math.max(Math.abs(inerVal), Math.abs(corVal), Math.abs(gravVal), 0.5);
 
-    svg.appendChild(R.TX(bx + MAX_W, by - 10, label, {
+    svg.appendChild(R.TX(ZERO_X, by - 12, label, {
       anchor: 'middle', fill: '#EAF0F8', size: 12, weight: 600,
     }));
 
@@ -216,34 +220,66 @@ onMounted(() => {
 
     rows.forEach(function(row, i) {
       const y = by + i * (BH + GAP);
-      const barW = Math.max(2, (Math.abs(row.val) / maxAbs) * MAX_W);
-      const barX = bx; // bars always go right (positive direction)
 
-      // Background track
+      // Background track (full width, both signs)
       svg.appendChild(R.E('rect', {
-        x: barX, y: y, width: MAX_W, height: BH,
+        x: TRACK_X, y: y, width: TRACK_W, height: BH,
         fill: 'rgba(120,140,200,0.10)', rx: 3,
       }));
 
-      // Value bar (color-coded, anchored left)
-      svg.appendChild(R.E('rect', {
-        x: barX, y: y, width: barW, height: BH,
-        fill: row.col, opacity: 0.82, rx: 3,
-      }));
+      // Bar on the shared scale, clamped to the track; tiny-but-nonzero
+      // values keep a 2px sliver so they stay visible (labels are exact).
+      const w0 = (Math.abs(row.val) / TORQUE_DISPLAY_MAX) * HALF_W;
+      const barW = Math.abs(row.val) > 0.005 ? Math.min(Math.max(w0, 2), HALF_W) : 0;
+      const neg = row.val < 0;
+      if (barW > 0) {
+        svg.appendChild(R.E('rect', {
+          x: neg ? ZERO_X - barW : ZERO_X, y: y, width: barW, height: BH,
+          fill: row.col, opacity: 0.82,
+        }));
+      }
 
-      // Label (right of track)
-      svg.appendChild(R.TX(barX + MAX_W + 6, y + BH / 2 + 4, row.lbl, {
+      // Row label (fixed column right of the track — never under a bar)
+      svg.appendChild(R.TX(TRACK_X + TRACK_W + 8, y + BH / 2 + 4, row.lbl, {
         anchor: 'start', fill: row.col, size: 10.5,
       }));
 
-      // Value readout inside or right of bar
-      svg.appendChild(R.TX(barX + Math.max(barW - 4, 30), y + BH / 2 + 4,
-        row.val.toFixed(2), {
-          anchor: barW > 36 ? 'end' : 'start',
-          fill: barW > 36 ? '#0F1422' : row.col,
-          size: 10, weight: 600,
-        }));
+      // Value readout at the bar tip: inside the bar when it is long enough,
+      // just past the tip otherwise (mirrored for negative bars) — stays
+      // within the track at the ±12 N·m extremes.
+      const inside = barW > 40;
+      const tx = neg
+        ? (inside ? ZERO_X - barW + 5 : ZERO_X - barW - 5)
+        : (inside ? ZERO_X + barW - 5 : ZERO_X + barW + 5);
+      svg.appendChild(R.TX(tx, y + BH / 2 + 4, fmtTau(row.val), {
+        anchor: (neg ? !inside : inside) ? 'end' : 'start',
+        fill: inside ? '#0F1422' : row.col,
+        size: 10, weight: 600,
+      }));
     });
+
+    // Zero line through this joint's rows (drawn last so bars don't cover it)
+    const rowsBottom = by + 3 * (BH + GAP) - GAP;
+    svg.appendChild(R.E('line', {
+      x1: ZERO_X, y1: by - 4, x2: ZERO_X, y2: rowsBottom + 4,
+      stroke: R.C.axis, 'stroke-width': 1,
+    }));
+  }
+
+  // Shared N·m axis: one ruler for every bar above (−12 … 0 … +12)
+  function drawTorqueAxis(svg, y) {
+    svg.appendChild(R.E('line', {
+      x1: TRACK_X, y1: y, x2: TRACK_X + TRACK_W, y2: y,
+      stroke: R.C.axis, 'stroke-width': 1,
+    }));
+    [[TRACK_X, '−' + TORQUE_DISPLAY_MAX], [ZERO_X, '0'], [TRACK_X + TRACK_W, '+' + TORQUE_DISPLAY_MAX + ' N·m']]
+      .forEach(function(tick) {
+        svg.appendChild(R.E('line', {
+          x1: tick[0], y1: y, x2: tick[0], y2: y + 4,
+          stroke: R.C.axis, 'stroke-width': 1,
+        }));
+        svg.appendChild(R.TX(tick[0], y + 16, tick[1], { fill: R.C.dim, size: 10 }));
+      });
   }
 
   // --- Controls ---

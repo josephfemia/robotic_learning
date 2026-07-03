@@ -11,6 +11,7 @@
 import { onMounted, onUnmounted, ref } from 'vue';
 import Lab from '../components/Lab.vue';
 import R from './rllab.js';
+import { reward, policyGradientStep } from '../logic/policyGradient.js';
 
 const note =
   'Press <strong>Sample &amp; step</strong> repeatedly, or <strong>Auto-run</strong>. Each dot is a sampled action; its size is the magnitude of its advantage. Notice the policy both <em>shifts</em> toward high reward (the mean update) and <em>narrows</em> as it grows confident (the variance update) — both fall out of the same gradient on \\(\\log\\pi\\).';
@@ -32,6 +33,8 @@ onMounted(() => {
 
   // Ported VERBATIM from the pg IIFE (reference lines 2540–2568).
   // Canvas created and appended here; getElementById → stage ref; window.RLLAB → R.
+  // Numeric core (reward landscape + REINFORCE update) comes from
+  // logic/policyGradient.js (vitest-pinned), identical to the original's inline math.
   var Wc = 700, Hc = 360;
   var cv = document.createElement('canvas');
   cv.width = Wc; cv.height = Hc;
@@ -43,7 +46,6 @@ onMounted(() => {
   var mu = -1.1, logsig = Math.log(0.85), lr = 0.12, iter = 0, samples = [], A0 = -3, A1 = 3;
 
   function X(a) { return 42 + ((a - A0) / (A1 - A0)) * (Wc - 72); }
-  function Rwd(a) { return Math.exp(-Math.pow(a - 1.2, 2) / (2 * 0.45)); }
 
   function draw() {
     g.clearRect(0, 0, Wc, Hc);
@@ -61,7 +63,7 @@ onMounted(() => {
     g.fillStyle = '#8A93A3'; g.fillText('action a  →', Wc / 2, Hc - 8);
     g.beginPath();
     for (var i = 0; i <= 160; i++) {
-      var a = A0 + (A1 - A0) * i / 160, y = baseY - Rwd(a) * 150, x2 = X(a);
+      var a = A0 + (A1 - A0) * i / 160, y = baseY - reward(a) * 150, x2 = X(a);
       if (i === 0) g.moveTo(x2, y); else g.lineTo(x2, y);
     }
     g.strokeStyle = 'rgba(232,89,12,0.95)'; g.lineWidth = 2; g.stroke();
@@ -88,26 +90,16 @@ onMounted(() => {
   }
 
   function stepOnce() {
+    // Sample K actions here (DOM-free core takes them as input), then delegate
+    // the full REINFORCE update — rewards, baseline, gradients, clamps — to the
+    // pinned core. Same draw order and formulas as the original inline version.
     var sig = Math.exp(logsig), K = 14;
-    samples = []; var rs = [];
-    for (var i = 0; i < K; i++) {
-      var a = mu + sig * R.randn(), r = Rwd(a);
-      samples.push({ a: a, adv: 0, r: r }); rs.push(r);
-    }
-    var mean = 0;
-    for (var m = 0; m < K; m++) mean += rs[m];
-    mean /= K;
-    var gmu = 0, gls = 0;
-    for (var k = 0; k < K; k++) {
-      var adv = samples[k].r - mean;
-      samples[k].adv = adv;
-      var d = samples[k].a - mu;
-      gmu += adv * d / (sig * sig);
-      gls += adv * ((d * d) / (sig * sig) - 1);
-    }
-    gmu /= K; gls /= K;
-    mu = R.clamp(mu + lr * gmu, -3, 3);
-    logsig = R.clamp(logsig + 0.5 * lr * gls, Math.log(0.18), Math.log(1.2));
+    var actions = [];
+    for (var i = 0; i < K; i++) actions.push(mu + sig * R.randn());
+    var res = policyGradientStep(mu, logsig, lr, actions);
+    samples = actions.map(function (a, k) { return { a: a, adv: res.advantages[k], r: reward(a) }; });
+    mu = res.mu;
+    logsig = res.logsig;
     iter++;
     draw();
   }

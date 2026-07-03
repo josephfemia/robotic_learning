@@ -36,7 +36,9 @@ onMounted(() => {
   // Render from the `disp` fractions + the current `lam` (header text).
   function render() {
     R.clr(svg);
-    var x0 = padL, x1 = W - padR, y0 = H - padB, y1 = padT, bw = (x1 - x0) / N, n;
+    // Plot ceiling sits 18px below the header band so bars can never run into
+    // the header text — at λ=1 every bar reaches the ceiling (preset button!).
+    var x0 = padL, x1 = W - padR, y0 = H - padB, y1 = padT + 18, bw = (x1 - x0) / N, n;
     svg.appendChild(R.E('line', { x1: x0, y1: y0, x2: x1, y2: y0, stroke: R.C.axis, 'stroke-width': 1.2 }));
     for (n = 0; n < N; n++) {
       var h = (y0 - y1) * disp[n];
@@ -48,7 +50,7 @@ onMounted(() => {
     svg.appendChild(R.TX(x0 + bw / 2, y0 - (y0 - y1) * disp[0] - 7, '1-step (TD)', { anchor: 'start', fill: R.C.cyan, size: 10.5 }));
     svg.appendChild(R.TX((x0 + x1) / 2, H - 30, 'weight on the n-step return  ( n = 0, 1, 2, … )', { fill: R.C.dim, size: 11.5 }));
     var heff = effectiveHorizon(lam);
-    svg.appendChild(R.TX(x1, y1 - 8, 'GAE λ = ' + lam.toFixed(2) + '   ·   effective horizon ≈ ' + (heff === null ? 'full episode' : heff.toFixed(1) + ' steps'), { anchor: 'end', fill: '#EAF0F8', size: 12.5, weight: 600, base: 'hanging' }));
+    svg.appendChild(R.TX(x1, padT - 8, 'GAE λ = ' + lam.toFixed(2) + '   ·   effective horizon ≈ ' + (heff === null ? 'full episode' : heff.toFixed(1) + ' steps'), { anchor: 'end', fill: '#EAF0F8', size: 12.5, weight: 600, base: 'hanging' }));
   }
 
   // Instant set (slider drag — already continuous) from the current lam.

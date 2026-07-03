@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { RETURNS, SCORES, MEAN_RETURN, OPTIMAL_BASELINE, gradientStats } from './baseline.js';
+import { RETURNS, SCORES, MEAN_RETURN, OPTIMAL_BASELINE, MEAN_GRADIENT, gradientStats, varianceCurve } from './baseline.js';
 
 describe('RETURNS', () => {
   it('has 10 elements matching the original fixed dataset', () => {
@@ -96,5 +96,53 @@ describe('gradientStats', () => {
     for (let i = 0; i < RETURNS.length; i++) {
       expect(gs[i]).toBeCloseTo((RETURNS[i] - b) * SCORES[i], 10);
     }
+  });
+});
+
+describe('MEAN_GRADIENT', () => {
+  it('equals (1/N) Σ Rᵢ·sᵢ', () => {
+    let s = 0;
+    for (let i = 0; i < RETURNS.length; i++) s += RETURNS[i] * SCORES[i];
+    expect(MEAN_GRADIENT).toBeCloseTo(s / RETURNS.length, 12);
+  });
+
+  it('is pinned near −0.0124 for the fixed dataset', () => {
+    expect(MEAN_GRADIENT).toBeCloseTo(-0.01243, 4);
+  });
+
+  it('matches gradientStats(b).mean for every b — the needle never moves', () => {
+    for (const b of [0, 0.3, MEAN_RETURN, OPTIMAL_BASELINE, 1.2]) {
+      expect(gradientStats(b).mean).toBeCloseTo(MEAN_GRADIENT, 12);
+    }
+  });
+});
+
+describe('varianceCurve', () => {
+  it('returns n points spanning [bMin, bMax]', () => {
+    const pts = varianceCurve(0, 1.2, 121);
+    expect(pts).toHaveLength(121);
+    expect(pts[0].b).toBeCloseTo(0, 12);
+    expect(pts[120].b).toBeCloseTo(1.2, 12);
+  });
+
+  it('every point agrees with gradientStats at that b', () => {
+    const pts = varianceCurve(0, 1.2, 13);
+    for (const p of pts) {
+      expect(p.variance).toBeCloseTo(gradientStats(p.b).variance, 12);
+    }
+  });
+
+  it('dips at OPTIMAL_BASELINE: curve minimum lies within one grid step of b*', () => {
+    const pts = varianceCurve(0, 1.2, 121);
+    let argmin = 0;
+    for (let i = 1; i < pts.length; i++) if (pts[i].variance < pts[argmin].variance) argmin = i;
+    const gridStep = 1.2 / 120;
+    expect(Math.abs(pts[argmin].b - OPTIMAL_BASELINE)).toBeLessThanOrEqual(gridStep);
+  });
+
+  it('is much higher at both edges than at the dip (the visible shape)', () => {
+    const vStar = gradientStats(OPTIMAL_BASELINE).variance;
+    expect(gradientStats(0).variance).toBeGreaterThan(5 * vStar);
+    expect(gradientStats(1.2).variance).toBeGreaterThan(5 * vStar);
   });
 });

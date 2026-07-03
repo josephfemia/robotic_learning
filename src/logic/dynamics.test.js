@@ -4,6 +4,8 @@ import {
   coriolis,
   gravity,
   inverseDynamics,
+  torqueComponents,
+  TORQUE_DISPLAY_MAX,
   DYNAMICS_CONSTANTS,
 } from './dynamics.js';
 
@@ -245,5 +247,84 @@ describe('inverseDynamics', () => {
   it('returns a 2-element array', () => {
     const tau = inverseDynamics([0, 0], [0, 0], [0, 0]);
     expect(tau).toHaveLength(2);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// torqueComponents — per-term breakdown used by the DynamicsWidget bars
+// ---------------------------------------------------------------------------
+describe('torqueComponents', () => {
+  it('matches the massMatrix / coriolis / gravity building blocks', () => {
+    const q = [0.7, -0.9], qd = [1.5, -2.0], qdd = [1, 0.5];
+    const tc = torqueComponents(q, qd, qdd);
+    const M = massMatrix(q);
+    expect(tc.inertia[0]).toBeCloseTo(M[0][0] * qdd[0] + M[0][1] * qdd[1], 12);
+    expect(tc.inertia[1]).toBeCloseTo(M[1][0] * qdd[0] + M[1][1] * qdd[1], 12);
+    const c = coriolis(q, qd);
+    expect(tc.coriolis[0]).toBeCloseTo(c[0], 12);
+    expect(tc.coriolis[1]).toBeCloseTo(c[1], 12);
+    const gv = gravity(q);
+    expect(tc.gravity[0]).toBeCloseTo(gv[0], 12);
+    expect(tc.gravity[1]).toBeCloseTo(gv[1], 12);
+  });
+
+  it('total equals inverseDynamics at several states', () => {
+    const cases = [
+      [[0, 0], [0, 0], [0, 0]],
+      [[0.5, 0.4], [0, 0], [1, 0.5]],
+      [[-1.2, 0.8], [3.5, -4], [1, 0.5]],
+    ];
+    for (const [q, qd, qdd] of cases) {
+      const tc = torqueComponents(q, qd, qdd);
+      const tau = inverseDynamics(q, qd, qdd);
+      expect(tc.total[0]).toBeCloseTo(tau[0], 12);
+      expect(tc.total[1]).toBeCloseTo(tau[1], 12);
+    }
+  });
+
+  it('pins the widget default state q=[0.5,0.4], qd=[0,0], qdd=[1,0.5]', () => {
+    const tc = torqueComponents([0.5, 0.4], [0, 0], [1, 0.5]);
+    expect(tc.inertia[0]).toBeCloseTo(1.4538638303347762, 8);
+    expect(tc.inertia[1]).toBeCloseTo(0.3442121988005771, 8);
+    expect(tc.coriolis[0]).toBeCloseTo(0, 12);
+    expect(tc.coriolis[1]).toBeCloseTo(0, 12);
+    expect(tc.gravity[0]).toBeCloseTo(9.8286836898916, 8);
+    expect(tc.gravity[1]).toBeCloseTo(1.2195987577470437, 8);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// TORQUE_DISPLAY_MAX — shared bar scale must bound the reachable slider range
+// ---------------------------------------------------------------------------
+describe('TORQUE_DISPLAY_MAX', () => {
+  it('bounds every torque component over the widget slider range, tightly', () => {
+    // Widget sliders: q1 ∈ ±160°, q2 ∈ ±140°, q̇1/q̇2 ∈ ±4 rad/s, q̈ = [1, 0.5].
+    // Gravity/inertia are velocity-independent; Coriolis is scanned on a
+    // velocity grid that includes the extremes ±4 (which maximise |C·q̇|).
+    const QDD = [1, 0.5];
+    const deg = Math.PI / 180;
+    const speeds = [-4, -2, 0, 2, 4];
+    let maxAbs = 0;
+    for (let d1 = -160; d1 <= 160; d1 += 10) {
+      for (let d2 = -140; d2 <= 140; d2 += 10) {
+        const q = [d1 * deg, d2 * deg];
+        const tc0 = torqueComponents(q, [0, 0], QDD);
+        maxAbs = Math.max(maxAbs,
+          Math.abs(tc0.inertia[0]), Math.abs(tc0.inertia[1]),
+          Math.abs(tc0.gravity[0]), Math.abs(tc0.gravity[1]));
+        for (const a of speeds) {
+          for (const b of speeds) {
+            const c = coriolis(q, [a, b]);
+            maxAbs = Math.max(maxAbs, Math.abs(c[0]), Math.abs(c[1]));
+          }
+        }
+      }
+    }
+    // The scale covers everything reachable…
+    expect(maxAbs).toBeLessThanOrEqual(TORQUE_DISPLAY_MAX);
+    // …and is not wastefully large: the true extreme is gravity at q=[0,0],
+    // (m1·lc1 + m2·L1 + m2·lc2)·g = 1.2·9.81 = 11.772 N·m.
+    expect(maxAbs).toBeCloseTo(11.772, 6);
+    expect(TORQUE_DISPLAY_MAX).toBe(12);
   });
 });

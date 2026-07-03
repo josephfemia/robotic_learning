@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { clamp01, evalN } from './bestOfN.js';
+import {
+  clamp01, evalN,
+  makeRng, trueSuccess, sampleCandidates, selectBest, bestTrue,
+} from './bestOfN.js';
 
 // ----------------------------------------------------------------
 // clamp01
@@ -151,5 +154,136 @@ describe('evalN — structural properties', () => {
     expect(typeof result).toBe('number');
     expect(result).toBeGreaterThanOrEqual(0);
     expect(result).toBeLessThanOrEqual(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Phase-3 (F3) additions — visible candidate batch + argmax selection
+// ---------------------------------------------------------------------------
+
+describe('makeRng', () => {
+  it('is deterministic: same seed → same sequence', () => {
+    const a = makeRng(42), b = makeRng(42);
+    for (let i = 0; i < 10; i++) expect(a()).toBe(b());
+  });
+
+  it('different seeds → different sequences', () => {
+    const a = makeRng(1), b = makeRng(2);
+    expect(a()).not.toBe(b());
+  });
+
+  it('produces values in [0, 1)', () => {
+    const rng = makeRng(7);
+    for (let i = 0; i < 1000; i++) {
+      const v = rng();
+      expect(v).toBeGreaterThanOrEqual(0);
+      expect(v).toBeLessThan(1);
+    }
+  });
+});
+
+describe('trueSuccess', () => {
+  it('matches the evalN success expression: clamp01(q − 0.7e + 0.25)', () => {
+    expect(trueSuccess(0.5, 0.5)).toBeCloseTo(0.4, 12);
+    expect(trueSuccess(0.8, 0.1)).toBeCloseTo(0.98, 12);
+  });
+
+  it('clamps at both ends', () => {
+    expect(trueSuccess(1, 0)).toBe(1);   // 1.25 → 1
+    expect(trueSuccess(0, 1)).toBe(0);   // −0.45 → 0
+  });
+});
+
+describe('sampleCandidates', () => {
+  it('returns N candidates, deterministic for a fixed seed', () => {
+    const a = sampleCandidates(8, 0.9, 5);
+    const b = sampleCandidates(8, 0.9, 5);
+    expect(a).toHaveLength(8);
+    expect(a).toEqual(b);
+  });
+
+  it('q/e depend only on (N, seed): changing vacc re-scores the SAME dots', () => {
+    const a = sampleCandidates(8, 0.9, 5);
+    const b = sampleCandidates(8, 0.5, 5);
+    for (let i = 0; i < 8; i++) {
+      expect(b[i].q).toBe(a[i].q);
+      expect(b[i].e).toBe(a[i].e);
+      expect(b[i].ptrue).toBe(a[i].ptrue);
+    }
+  });
+
+  it('fields are internally consistent: vscore = vacc·q + (1−vacc)·e, ptrue = trueSuccess(q, e)', () => {
+    const vacc = 0.72;
+    for (const c of sampleCandidates(16, vacc, 11)) {
+      expect(c.vscore).toBeCloseTo(vacc * c.q + (1 - vacc) * c.e, 12);
+      expect(c.ptrue).toBeCloseTo(trueSuccess(c.q, c.e), 12);
+      expect(c.q).toBeGreaterThanOrEqual(0);
+      expect(c.q).toBeLessThan(1);
+      expect(c.e).toBeGreaterThanOrEqual(0);
+      expect(c.e).toBeLessThan(1);
+    }
+  });
+
+  it('advancing the seed produces a different batch (the Resample button)', () => {
+    const a = sampleCandidates(8, 0.9, 1);
+    const b = sampleCandidates(8, 0.9, 2);
+    expect(a[0].q).not.toBe(b[0].q);
+  });
+});
+
+describe('selectBest / bestTrue', () => {
+  it('selectBest returns the argmax of vscore (first wins on ties, like evalN)', () => {
+    const cands = [
+      { vscore: 0.2, ptrue: 0.9 },
+      { vscore: 0.8, ptrue: 0.1 },
+      { vscore: 0.8, ptrue: 0.5 },
+      { vscore: 0.5, ptrue: 0.7 },
+    ];
+    expect(selectBest(cands)).toBe(1);
+  });
+
+  it('bestTrue returns the argmax of ptrue', () => {
+    const cands = [
+      { vscore: 0.2, ptrue: 0.9 },
+      { vscore: 0.8, ptrue: 0.1 },
+    ];
+    expect(bestTrue(cands)).toBe(0);
+  });
+
+  it('with vacc=1 the pick is the max-q candidate (verifier reads pure quality)', () => {
+    const cands = sampleCandidates(32, 1.0, 9);
+    const sel = selectBest(cands);
+    const maxQ = Math.max(...cands.map(c => c.q));
+    expect(cands[sel].q).toBe(maxQ);
+  });
+});
+
+describe('reward hacking, watched: weak verifier picks high-score/low-truth candidates', () => {
+  // Average over many seeded batches so the property is stable, then pin it.
+  function avgOverSeeds(vacc, N, fn) {
+    let sum = 0;
+    for (let seed = 1; seed <= 150; seed++) {
+      const cands = sampleCandidates(N, vacc, seed);
+      sum += fn(cands);
+    }
+    return sum / 150;
+  }
+
+  it('the pick of a weak verifier has much lower true success than a strong one', () => {
+    const strong = avgOverSeeds(1.0, 32, c => c[selectBest(c)].ptrue);
+    const weak   = avgOverSeeds(0.5, 32, c => c[selectBest(c)].ptrue);
+    expect(strong).toBeGreaterThan(weak + 0.15);
+  });
+
+  it('the weak verifier chases the exploit feature: picked e is much higher', () => {
+    const strongE = avgOverSeeds(1.0, 32, c => c[selectBest(c)].e);
+    const weakE   = avgOverSeeds(0.5, 32, c => c[selectBest(c)].e);
+    expect(weakE).toBeGreaterThan(strongE + 0.25);
+  });
+
+  it('the gap to the truly best candidate widens as the verifier weakens', () => {
+    const gap = vacc => avgOverSeeds(vacc, 32, c => c[bestTrue(c)].ptrue - c[selectBest(c)].ptrue);
+    expect(gap(0.5)).toBeGreaterThan(gap(1.0) + 0.1);
+    expect(gap(1.0)).toBeGreaterThanOrEqual(0); // truly best is an upper bound by definition
   });
 });

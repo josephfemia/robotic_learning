@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { scoreField, noiseSchedule, denoisingStep } from './diffusion.js';
+import { scoreField, noiseSchedule, denoisingStep, noiseScale, STEP_LR } from './diffusion.js';
 
 // Fixed modes from the original IIFE: m1=[-1.4,0], m2=[1.4,0]
 const M1 = [-1.4, 0];
@@ -148,5 +148,29 @@ describe('denoisingStep', () => {
       p = denoisingStep(p, s2, 0.18);
     }
     expect(p.x).toBeLessThan(-1.0);
+  });
+});
+
+describe('sampler constants (noiseScale, STEP_LR)', () => {
+  it('pins STEP_LR at the original dstep() step size 0.18', () => {
+    expect(STEP_LR).toBe(0.18);
+  });
+
+  it('pins noiseScale at step 0: sqrt(2*0.18)*0.18', () => {
+    expect(noiseScale(0, STEP_LR)).toBeCloseTo(Math.sqrt(2 * 0.18) * 0.18, 12);
+  });
+
+  it('pins noiseScale at step 3 from the original formula', () => {
+    expect(noiseScale(3, STEP_LR)).toBeCloseTo(Math.sqrt(2 * 0.18) * 0.18 * Math.exp(-3 / 8), 12);
+  });
+
+  it('decays by exp(-1) every 8 steps', () => {
+    expect(noiseScale(8, STEP_LR)).toBeCloseTo(noiseScale(0, STEP_LR) * Math.exp(-1), 12);
+  });
+
+  it('is monotonically decreasing over the 24-step run', () => {
+    for (let t = 1; t <= 24; t++) {
+      expect(noiseScale(t, STEP_LR)).toBeLessThan(noiseScale(t - 1, STEP_LR));
+    }
   });
 });

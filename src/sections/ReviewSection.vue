@@ -1,6 +1,6 @@
 <template>
   <section class="lecture" id="review" ref="rootEl">
-    <div class="lecture-head"><span class="ltag">PRACTICE</span><h2>Review mode</h2><p class="dek">Every self-check question from all twelve lectures, gathered in one place for spaced review. Answers reveal on tap, exactly as in the lectures. Use this before an exam or to find the topics that have gone stale.</p></div>
+    <div class="lecture-head"><span class="ltag">PRACTICE</span><h2>Review mode</h2><p class="dek">Every self-check question from the Primer and all twelve lectures, gathered in one place for spaced review. Answers reveal on tap, exactly as in the lectures. Use this before an exam or to find the topics that have gone stale.</p></div>
     <div class="meta-strip"><span class="chip"><b>Source</b> all lecture quizzes</span><span class="chip"><b>Tip</b> shuffle, then revisit what you miss</span></div>
 
     <!-- ReviewDeck renders both #reviewBar (toggles + score + notice) and #reviewDeck (questions) -->

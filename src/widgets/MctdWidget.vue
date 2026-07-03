@@ -26,7 +26,7 @@ onMounted(() => {
 
   // Ported verbatim from the mctd IIFE (reference lines 2828–2871).
   var N = 5, gamma = 0.9, alpha = 0.15;
-  var trueV = []; for (var i = 0; i < N; i++) { trueV[i] = Math.pow(gamma, (N - 1 - i)); }
+  var trueV = trueValues(gamma, N);
   var Vmc, Vtd, nEp;
 
   // `disp` holds the currently-shown bar values; it eases toward the true

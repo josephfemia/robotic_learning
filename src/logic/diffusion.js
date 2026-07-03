@@ -66,3 +66,23 @@ export function denoisingStep(p, s2, lr) {
   var sc = scoreField(p, s2);
   return { x: p.x + lr * sc.sx, y: p.y + lr * sc.sy };
 }
+
+/**
+ * Sampler step size used by dstep() in the original: lr = 0.18.
+ */
+export var STEP_LR = 0.18;
+
+/**
+ * Stochastic-injection scale at denoising step t (Langevin-style, decaying).
+ * Multiplies a randn() draw per coordinate in the widget's sampler.
+ *
+ * Original (inline in dstep() loop):
+ *   var nz = Math.sqrt(2*lr) * 0.18 * Math.exp(-step/8);
+ *
+ * @param {number} t  - denoising step index (0-based)
+ * @param {number} lr - sampler step size (STEP_LR = 0.18 in original)
+ * @returns {number} noise standard-deviation scale for this step
+ */
+export function noiseScale(t, lr) {
+  return Math.sqrt(2 * lr) * 0.18 * Math.exp(-t / 8);
+}

@@ -49,10 +49,15 @@ onMounted(() => {
     var chunkPath = R.E('path', { d: dc, fill: 'none', stroke: R.C.violet, 'stroke-width': 2, opacity: 0.45 });
     svg.appendChild(chunkPath);
     for (var k = 0; k < chunk; k++) { var idx = s + k; if (idx >= T) break; svg.appendChild(R.E('circle', { cx: X(idx), cy: Y(predict(s, k)), r: 2.5, fill: R.C.violet, opacity: 0.5 })); }
-    // committed/executed path (solid)
-    var dd = '', started = false;
-    for (var i = 0; i < T; i++) { if (committed[i] == null) continue; dd += (started ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(committed[i]).toFixed(1); started = true; }
-    var execPath = started ? R.E('path', { d: dd, fill: 'none', stroke: R.C.cyan, 'stroke-width': 2.6 }) : null;
+    // committed/executed path (solid) — break at gaps: never draw an "executed"
+    // segment across steps where no action was planned (A5).
+    var dd = '', pen = false;
+    for (var i = 0; i < T; i++) {
+      if (committed[i] == null) { pen = false; continue; }
+      dd += (pen ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(committed[i]).toFixed(1);
+      pen = true;
+    }
+    var execPath = dd ? R.E('path', { d: dd, fill: 'none', stroke: R.C.cyan, 'stroke-width': 2.6 }) : null;
     if (execPath) svg.appendChild(execPath);
     // planning marker (sweeps when markerX is provided)
     var mx = (markerX == null) ? X(s) : markerX;
@@ -79,8 +84,11 @@ onMounted(() => {
   R.btn(ctr, 'Advance one re-plan', 'primary', advance);
   R.btn(ctr, 'Reset', null, function () { t = 0; draw(); });
   var eb = R.btn(ctr, 'Temporal ensembling: ON', 'primary', function () { ensemble = !ensemble; eb.textContent = 'Temporal ensembling: ' + (ensemble ? 'ON' : 'OFF'); eb.classList.toggle('primary', ensemble); var p = draw(); if (p.execPath) writeOn(p.execPath, { dur: 360 }); });
-  R.slider(ctr, { label: 'execution stride (steps before re-plan)', min: 1, max: 12, step: 1, value: stride, fmt: function (v) { return '' + v; }, on: function (v) { stride = v; draw(); } });
-  R.slider(ctr, { label: 'chunk length', min: 4, max: 20, step: 1, value: chunk, fmt: function (v) { return '' + v; }, on: function (v) { chunk = v; draw(); } });
+  // A5: stride must never exceed chunk — otherwise steps between chunk-end and
+  // the next re-plan have no planned action at all. Clamp both ways.
+  var strideSld = R.slider(ctr, { label: 'execution stride (steps before re-plan)', min: 1, max: 12, step: 1, value: stride, fmt: function (v) { return '' + v; }, on: function (v) { stride = Math.min(v, chunk); if (stride !== v) strideSld.set(stride); draw(); } });
+  R.slider(ctr, { label: 'chunk length', min: 4, max: 20, step: 1, value: chunk, fmt: function (v) { return '' + v; }, on: function (v) { chunk = v; strideSld.input.max = Math.min(12, chunk); if (stride > chunk) { stride = chunk; strideSld.set(stride); } draw(); } });
+  strideSld.input.max = Math.min(12, chunk);
   draw();
 });
 </script>

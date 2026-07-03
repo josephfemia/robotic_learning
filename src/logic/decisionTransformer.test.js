@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { achievedReturn, isInDistribution, MAX_DATA } from './decisionTransformer.js';
+import { achievedReturn, isInDistribution, MAX_DATA, datasetReturns } from './decisionTransformer.js';
 
 describe('MAX_DATA constant', () => {
   it('matches the original IIFE value of 0.82', () => {
@@ -100,5 +100,55 @@ describe('isInDistribution', () => {
   it('works with custom maxData', () => {
     expect(isInDistribution(0.5, 0.6)).toBe(true);
     expect(isInDistribution(0.7, 0.6)).toBe(false);
+  });
+});
+
+describe('datasetReturns — pinned dataset of trajectory returns', () => {
+  it('defaults to 48 trajectories', () => {
+    expect(datasetReturns()).toHaveLength(48);
+  });
+
+  it('is deterministic: default call reproduces the same array', () => {
+    expect(datasetReturns()).toEqual(datasetReturns());
+    expect(datasetReturns(48, MAX_DATA, 7)).toEqual(datasetReturns());
+  });
+
+  it('is sorted ascending with all returns in [0, MAX_DATA]', () => {
+    const ds = datasetReturns();
+    for (let i = 0; i < ds.length; i++) {
+      expect(ds[i]).toBeGreaterThanOrEqual(0);
+      expect(ds[i]).toBeLessThanOrEqual(MAX_DATA);
+      if (i > 0) expect(ds[i]).toBeGreaterThanOrEqual(ds[i - 1]);
+    }
+  });
+
+  it('the best trajectory sits exactly at MAX_DATA — the support ends where the orange line stands', () => {
+    const ds = datasetReturns();
+    expect(ds[ds.length - 1]).toBe(MAX_DATA);
+  });
+
+  it('pinned default-seed values (seed=7): first and last entries', () => {
+    const ds = datasetReturns();
+    expect(ds[0]).toBeCloseTo(0.002023, 5);
+    expect(ds[1]).toBeCloseTo(0.004220, 5);
+    expect(ds[ds.length - 2]).toBeCloseTo(0.795681, 5);
+    expect(ds[ds.length - 3]).toBeCloseTo(0.794541, 5);
+  });
+
+  it('support thins near the top: far fewer returns above 0.9·max than below 0.5·max', () => {
+    const ds = datasetReturns();
+    const hi = ds.filter((r) => r > 0.9 * MAX_DATA).length;
+    const lo = ds.filter((r) => r < 0.5 * MAX_DATA).length;
+    expect(hi).toBe(4);
+    expect(lo).toBe(32);
+    expect(hi).toBeLessThan(lo);
+  });
+
+  it('respects custom n, maxData, and seed', () => {
+    const ds = datasetReturns(10, 0.5, 3);
+    expect(ds).toHaveLength(10);
+    expect(Math.max(...ds)).toBe(0.5);
+    expect(ds.every((r) => r >= 0 && r <= 0.5)).toBe(true);
+    expect(ds).not.toEqual(datasetReturns(10, 0.5, 4));
   });
 });

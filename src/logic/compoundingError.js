@@ -59,3 +59,50 @@ export function daggerRegret(eps, T) {
 export function regretRatio(T) {
   return T;
 }
+
+// ---------------------------------------------------------------------------
+// Phase-3 additions (F8): the triangular stack of per-step damages that
+// explains WHERE the T² comes from. Under BC, a mistake at step t is never
+// corrected, so it can cost all T−t remaining steps; under DAgger the drifted
+// state is relabelled, so a mistake costs only its own step (damage ε).
+// ---------------------------------------------------------------------------
+
+/**
+ * Damage of a BC mistake made at step t on a horizon-T task: ε·(T − t).
+ * Tallest at t=0 (whole episode ruined), zero at t=T — the bars of the
+ * triangular stack drawn by the CurveWidget's damage panel.
+ *
+ * @param {number} eps - per-step error probability
+ * @param {number} t   - step at which the mistake occurs (0 ≤ t ≤ T)
+ * @param {number} T   - task horizon
+ * @returns {number} expected damage of that mistake (clamped to ≥ 0)
+ */
+export function perStepDamage(eps, t, T) {
+  return eps * Math.max(0, T - t);
+}
+
+/**
+ * Area of the damage triangle: ∫₀ᵀ ε·(T−t) dt = ½·ε·T².
+ * This IS the εT² (up to the constant ½): summing the per-step damages
+ * gives half of bcRegret, so 2 × damageTriangleArea(eps, T) = bcRegret(eps, T).
+ *
+ * @param {number} eps - per-step error probability
+ * @param {number} T   - task horizon
+ * @returns {number} triangle area ½·ε·T²
+ */
+export function damageTriangleArea(eps, T) {
+  return 0.5 * eps * T * T;
+}
+
+/**
+ * Area of DAgger's constant-height damage strip: T steps × ε per step = ε·T.
+ * Identical to daggerRegret — exported under the geometric name the widget's
+ * panel readout uses so the strip/area correspondence is explicit.
+ *
+ * @param {number} eps - per-step error probability
+ * @param {number} T   - task horizon
+ * @returns {number} strip area ε·T
+ */
+export function daggerStripArea(eps, T) {
+  return eps * T;
+}

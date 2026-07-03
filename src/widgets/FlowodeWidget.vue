@@ -12,14 +12,15 @@ import { onMounted, onUnmounted, ref } from 'vue';
 import Lab from '../components/Lab.vue';
 import R from './rllab.js';
 import { velocityField, eulerStep } from '../logic/flowMatching.js';
+import { tween } from '../composables/useAnimate.js';
 
 const note =
   'Number of integration steps = number of function evaluations = your latency budget. This is exactly why π0\'s flow-matching action head can emit high-frequency action chunks on real hardware where a many-step diffusion sampler would be too slow. Same multimodal target as the diffusion lab above — different, faster road to it.';
 
 const lab = ref(null);
 
-// Animation frame id for cleanup (flowode uses no setTimeout, only requestAnimationFrame indirectly via build+draw on slider)
-// No animation loop — controls trigger synchronous rebuild + redraw
+// No persistent animation loop — the slider triggers synchronous rebuild +
+// redraw; "Re-sample noise" runs one finite tween() (self-terminating rAF).
 
 onMounted(() => {
   const stage = lab.value.stage;
@@ -94,8 +95,28 @@ onMounted(() => {
     g.fillStyle = '#8A93A3'; g.textAlign = 'center'; g.font = '12px IBM Plex Mono, monospace'; g.fillText('integration time t  →', 0, 0); g.restore();
   }
 
+  // Slider drags stay instant (motion contract); the discrete "Re-sample
+  // noise" click eases the old paths into the new ones. tween() collapses to
+  // a single onStep(1) under prefers-reduced-motion.
   R.slider(ctr, { label: 'ODE steps (NFE)', min: 1, max: 40, step: 1, value: steps, fmt: function (v) { return '' + v; }, on: function (v) { steps = v; build(); draw(); } });
-  R.btn(ctr, 'Re-sample noise', 'primary', function () { build(); draw(); });
+  R.btn(ctr, 'Re-sample noise', 'primary', function () {
+    var oldPaths = paths;
+    build();
+    var newPaths = paths;
+    tween(400, {
+      onStep: function (e) {
+        paths = newPaths.map(function (p, i) {
+          var op = oldPaths[i];
+          // Same steps count on both sides (slider rebuilds instantly), but
+          // guard anyway: if lengths differ, snap to the new path.
+          if (!op || op.length !== p.length) return p;
+          return p.map(function (pt, k) { return { x: op[k].x + (pt.x - op[k].x) * e, t: pt.t }; });
+        });
+        draw();
+      },
+      onDone: function () { paths = newPaths; draw(); },
+    });
+  });
   R.legend(stage, [['#8A93A3', 'start (noise)'], [R.C.violet, 'ODE path'], [R.C.cyan, 'arrived']]);
   build(); draw();
 });

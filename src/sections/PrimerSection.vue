@@ -6,24 +6,44 @@
       <p class="dek">Three parts: what a robot actually is (Part A), the decision-making skeleton all twelve lectures hang on (Part B), and a Rosetta stone from actuarial mathematics to reinforcement learning (Part C). Read this before Lecture 1; revisit it constantly.</p>
     </div>
 
+    <div class="meta-strip">
+      <span class="chip"><b>Prereqs</b> calculus · linear algebra · basic probability</span>
+      <span class="chip"><b>Time</b> ~60 min</span>
+      <span class="chip"><b>Labs</b> five interactives — arm, dynamics, Bellman, softmax, discount</span>
+    </div>
+
     <h3><span class="knum">PART A</span>What a robot actually is</h3>
     <p>Strip away the science fiction. A robot is <strong>sensors + actuators + a computer, wired into a feedback loop with the physical world</strong>. The computer reads sensors, decides, commands actuators, and the world responds — many times per second, forever. Everything in this course is about what runs inside that loop.</p>
 
-    <div class="figure"><pre>
-              ┌──────────────────────────────┐
-              │           WORLD              │
-              │  (objects, physics, people)  │
-              └───────┬──────────────▲───────┘
-                      │              │
-                 observations     actions
-              (camera, joints,  (motor torques,
-               force, touch)     target poses)
-                      │              │
-              ┌───────▼──────────────┴───────┐
-              │      POLICY  π(a|o)          │
-              │  the thing this course       │
-              │  teaches you how to LEARN    │
-              └──────────────────────────────┘</pre>
+    <div class="figure">
+    <svg viewBox="0 0 640 332" role="img"
+         aria-label="The perception–action loop: observations flow from the world down to the policy; actions flow from the policy back up to the world."
+         style="display:block;width:100%;max-width:560px;margin:0 auto;font-family:var(--sans)">
+      <defs>
+        <marker id="figp1-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#5B6572" />
+        </marker>
+      </defs>
+      <!-- pulse dot: drawn first so the boxes occlude it while it crosses them -->
+      <circle ref="loopDot" cx="240" cy="50" r="5" fill="#E8590C" />
+      <!-- observation arrow: world → policy -->
+      <line x1="240" y1="82" x2="240" y2="242" stroke="#5B6572" stroke-width="1.6" marker-end="url(#figp1-arrow)" />
+      <!-- action arrow: policy → world -->
+      <line x1="400" y1="248" x2="400" y2="88" stroke="#5B6572" stroke-width="1.6" marker-end="url(#figp1-arrow)" />
+      <!-- WORLD node -->
+      <rect x="170" y="18" width="300" height="64" rx="10" fill="#F0F3F8" stroke="#D9DFE7" stroke-width="1.5" />
+      <text x="320" y="44" text-anchor="middle" font-size="15" font-weight="700" letter-spacing="1.5" fill="#161B22">WORLD</text>
+      <text x="320" y="66" text-anchor="middle" font-size="11.5" fill="#5B6572">(objects, physics, people)</text>
+      <!-- POLICY node -->
+      <rect x="170" y="248" width="300" height="64" rx="10" fill="#FFFFFF" stroke="#2742CC" stroke-width="1.5" />
+      <text x="320" y="274" text-anchor="middle" font-size="15" font-weight="700" fill="#2742CC">POLICY  π(a|o)</text>
+      <text x="320" y="296" text-anchor="middle" font-size="11" fill="#5B6572">the thing this course teaches you how to LEARN</text>
+      <!-- edge labels -->
+      <text x="224" y="152" text-anchor="end" font-size="12.5" font-weight="600" fill="#161B22">observation oₜ</text>
+      <text x="224" y="170" text-anchor="end" font-size="11" fill="#5B6572">camera, joints, force, touch</text>
+      <text x="416" y="152" font-size="12.5" font-weight="600" fill="#161B22">action aₜ</text>
+      <text x="416" y="170" font-size="11" fill="#5B6572">motor torques, target poses</text>
+    </svg>
     <div class="figcap">FIG. P1 — The perception–action loop. Classical robotics fills the box with hand-derived models; robot learning fills it with a trained neural network.</div></div>
 
     <h4>State: where the robot is, in numbers</h4>
@@ -55,19 +75,21 @@
     Things hard for humans (chess, calculus, Go) turned out easy for computers; things trivial for a toddler (picking up a toy, walking on gravel) remain at the frontier of robotics. Evolution spent billions of years optimizing sensorimotor skill and a few millennia on symbolic reasoning — so our intuitions about what's "hard" are exactly backwards. Keep this in mind every time a task in this course looks mundane.</div>
 
     <h3><span class="knum">PART B</span>The decision-making skeleton</h3>
-    <p>Here is the formal frame that Lectures 2–10 all share. An <strong>agent</strong> interacts with an <strong>environment</strong> in discrete time steps. At step \(t\): the agent sees state \(s_t\), picks action \(a_t \sim \pi(\cdot|s_t)\), the environment returns reward \(r_t\) and next state \(s_{t+1} \sim P(\cdot|s_t,a_t)\). This repeats, producing a <strong>trajectory</strong> (or "rollout" / "episode") \(\tau = (s_0,a_0,r_0,s_1,a_1,r_1,\dots)\).</p>
+    <p>Part A left you with a loop that fires many times a second. Part B is the bookkeeping that loop needs: if the reward for an action arrives three hundred steps later, what number should the agent write next to that action today? Getting that ledger right — coherently, recursively, under uncertainty — is the entire formal content of Lectures 2–10. Here is the frame they all share.</p>
+    <p>An <strong>agent</strong> interacts with an <strong>environment</strong> in discrete time steps. At step \(t\): the agent sees state \(s_t\), picks action \(a_t \sim \pi(\cdot|s_t)\), the environment returns reward \(r_t\) and next state \(s_{t+1} \sim P(\cdot|s_t,a_t)\). This repeats, producing a <strong>trajectory</strong> (or "rollout" / "episode") \(\tau = (s_0,a_0,r_0,s_1,a_1,r_1,\dots)\).</p>
     <p>The agent's objective is the expected <strong>return</strong> — discounted cumulative reward:</p>
     <p>$$G_t = r_t + \gamma r_{t+1} + \gamma^2 r_{t+2} + \cdots = \sum_{k=0}^{\infty}\gamma^k r_{t+k}, \qquad \gamma \in [0,1)$$</p>
     <p>Two functions summarize "how good things are," and the entire field is built on them:</p>
     <p>$$V^\pi(s) = \mathbb{E}_\pi\!\left[G_t \mid s_t = s\right] \qquad\qquad Q^\pi(s,a) = \mathbb{E}_\pi\!\left[G_t \mid s_t = s,\, a_t = a\right]$$</p>
     <p>\(V^\pi\) is the expected return from state \(s\) if you follow policy \(\pi\); \(Q^\pi\) is the same but with the first action pinned to \(a\). Their relationship: \(V^\pi(s) = \mathbb{E}_{a\sim\pi}[Q^\pi(s,a)]\). The <strong>advantage</strong> \(A^\pi(s,a) = Q^\pi(s,a) - V^\pi(s)\) measures how much better action \(a\) is than \(\pi\)'s average behavior — it will star in Lecture 5.</p>
-    <p>Because returns are recursive (\(G_t = r_t + \gamma G_{t+1}\)), value functions obey the <strong>Bellman equation</strong>:</p>
-    <p>$$V^\pi(s) = \mathbb{E}_{a\sim\pi,\; s'\sim P}\big[\, r(s,a) + \gamma\, V^\pi(s') \,\big]$$</p>
-    <p>Memorize the shape: <em>value now = expected immediate reward + discounted expected value next</em>. You will see it forty times in this course wearing different costumes.</p>
 
     <h4>Build the Bellman equation from scratch</h4>
-    <p>Before we take that equation as given, build it. Below is a tiny 4-state world: only the last state pays a reward. Click a state to ask 'given what I think my successors are worth, what am I worth?' — repeat, and the values stabilize into exactly the Bellman equation.</p>
+    <p>Before I hand you the equation these definitions obey, earn it. Below is a tiny 4-state world: only the last state pays. Click a state to ask "given what I currently think my successors are worth, what am I worth?" — repeat until nothing changes. The update you are clicking is the most important equation in the course.</p>
     <BellmanDeriveWidget />
+
+    <p>What you just built has a name. Because returns are recursive (\(G_t = r_t + \gamma G_{t+1}\)), value functions obey the <strong>Bellman equation</strong>:</p>
+    <p>$$V^\pi(s) = \mathbb{E}_{a\sim\pi,\; s'\sim P}\big[\, r(s,a) + \gamma\, V^\pi(s') \,\big]$$</p>
+    <p>Memorize the shape — <em>value now = expected immediate reward + discounted expected value next</em> — you just watched it stabilize. You will see it forty times in this course wearing different costumes.</p>
 
     <h4>The three families of solutions</h4>
     <ul>
@@ -92,7 +114,7 @@
     <h3><span class="knum">PART C</span>The actuarial Rosetta stone</h3>
     <p>Here's the part nobody will tell you in lecture: <strong>you have been doing dynamic programming on Markov processes with discounting your entire actuarial career.</strong> The vocabulary differs; the mathematics is the same. The clearest example — compare the actuarial recursion for a whole-life annuity-due with the Bellman equation:</p>
     <p>$$\ddot a_x = 1 + v\, p_x\, \ddot a_{x+1} \qquad\Longleftrightarrow\qquad V^\pi(s) = r(s) + \gamma \sum_{s'} P(s'|s)\, V^\pi(s')$$</p>
-    <p>The right-hand form is the fixed-policy, state-reward special case of the Bellman equation — reward depends only on state and the policy is held fixed — chosen precisely because its structure mirrors the annuity recursion exactly. It differs from Part B's general form \(V^\pi(s)=\mathbb{E}[r(s,a)+\gamma V^\pi(s')]\), which takes an explicit expectation over actions drawn from \(\pi\); once the policy is fixed and rewards depend only on state, that expectation collapses to the deterministic sum here.</p>
+    <p>The right-hand form is the special case of Part B's Bellman equation you get when the policy is held fixed and reward depends only on state — the expectation over actions collapses to this deterministic sum, and what remains mirrors the annuity recursion exactly.</p>
     <p>Read the left side as an RL problem: the "state" is being alive at age \(x\); the "reward" is the payment of 1 each period; the "discount factor" is \(v = 1/(1+i)\); the "transition" is surviving to age \(x+1\) with probability \(p_x\); death is an absorbing terminal state with value 0. An annuity value <em>is</em> a value function. A reserve <em>is</em> a value function. You have computed \(V^\pi\) thousands of times.</p>
 
     <div class="bridge">
@@ -127,7 +149,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import DiscWidget from '../widgets/DiscWidget.vue';
 import ArmWidget from '../widgets/ArmWidget.vue';
 import DynamicsWidget from '../widgets/DynamicsWidget.vue';
@@ -137,10 +159,29 @@ import Quiz from '../components/Quiz.vue';
 import CompleteBar from '../components/CompleteBar.vue';
 import { renderMath } from '../composables/useKaTeX.js';
 import { applyXref } from '../composables/useXref.js';
+import { prefersReducedMotion } from '../composables/useAnimate.js';
 
 defineEmits(['navigate']);
 
 const rootEl = ref(null);
+const loopDot = ref(null);
+let loopRaf = 0;
+
+// FIG P1 pulse: point at fraction p ∈ [0,1) along the rectangular loop
+// (down the observation edge, across, up the action edge, back across).
+// Pure math — no getTotalLength, so it's safe while the section is hidden.
+function loopPoint(p) {
+  const x0 = 240, x1 = 400, y0 = 50, y1 = 280;
+  const w = x1 - x0, h = y1 - y0, P = 2 * (w + h);
+  let d = p * P;
+  if (d < h) return { x: x0, y: y0 + d };
+  d -= h;
+  if (d < w) return { x: x0 + d, y: y1 };
+  d -= w;
+  if (d < h) return { x: x1, y: y1 - d };
+  d -= h;
+  return { x: x1 - d, y: y0 };
+}
 
 onMounted(async () => {
   await nextTick();
@@ -148,5 +189,19 @@ onMounted(async () => {
     renderMath(rootEl.value);
     applyXref(rootEl.value);
   }
+  // One slow pulse circling FIG P1's loop; static under prefers-reduced-motion
+  // (the dot rests occluded beneath the WORLD box).
+  if (loopDot.value && !prefersReducedMotion()) {
+    const PERIOD = 9000;
+    const frame = (ts) => {
+      const pt = loopPoint((ts % PERIOD) / PERIOD);
+      loopDot.value.setAttribute('cx', pt.x);
+      loopDot.value.setAttribute('cy', pt.y);
+      loopRaf = requestAnimationFrame(frame);
+    };
+    loopRaf = requestAnimationFrame(frame);
+  }
 });
+
+onUnmounted(() => cancelAnimationFrame(loopRaf));
 </script>
