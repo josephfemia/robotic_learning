@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { bcRegret, daggerRegret, regretRatio } from './compoundingError.js';
+import {
+  bcRegret,
+  daggerRegret,
+  regretRatio,
+  perStepDamage,
+  damageTriangleArea,
+  daggerStripArea,
+} from './compoundingError.js';
 
 // Default values from the original IIFE: eps=0.06, Tcur=60, Tmax=100
 const EPS = 0.06;
@@ -57,5 +64,60 @@ describe('regretRatio', () => {
       const ratio = bcRegret(EPS, T) / daggerRegret(EPS, T);
       expect(regretRatio(T)).toBeCloseTo(ratio, 10);
     }
+  });
+});
+
+describe('perStepDamage', () => {
+  it('is ε·T at t=0 (a first-step mistake ruins the whole episode)', () => {
+    expect(perStepDamage(0.06, 0, 60)).toBeCloseTo(3.6, 10);
+    expect(perStepDamage(0.2, 0, 100)).toBeCloseTo(20, 10);
+  });
+
+  it('is 0 at t=T and clamps to 0 beyond the horizon', () => {
+    expect(perStepDamage(EPS, 60, 60)).toBe(0);
+    expect(perStepDamage(EPS, 75, 60)).toBe(0);
+  });
+
+  it('decreases linearly in t: damage(t) − damage(t+1) = ε', () => {
+    for (let t = 0; t < 60; t++) {
+      expect(perStepDamage(EPS, t, 60) - perStepDamage(EPS, t + 1, 60))
+        .toBeCloseTo(EPS, 10);
+    }
+  });
+
+  it('pins a mid-episode value: ε=0.06, t=20, T=60 → 0.06·40 = 2.4', () => {
+    expect(perStepDamage(0.06, 20, 60)).toBeCloseTo(2.4, 10);
+  });
+});
+
+describe('damageTriangleArea', () => {
+  it('is ½·ε·T² — half the BC regret at the same (ε, T)', () => {
+    for (const T of [10, 30, 60, 100]) {
+      expect(2 * damageTriangleArea(EPS, T)).toBeCloseTo(bcRegret(EPS, T), 10);
+    }
+  });
+
+  it('pins the widget defaults ε=0.06, T=60 → 108', () => {
+    expect(damageTriangleArea(0.06, 60)).toBeCloseTo(108, 10);
+  });
+
+  it('matches the discrete sum Σₜ ε·(T−t) up to the ½·ε·T discretisation term', () => {
+    // Σ_{t=0}^{T-1} ε·(T−t) = ε·T(T+1)/2 = ½εT² + ½εT
+    const T = 60;
+    let sum = 0;
+    for (let t = 0; t < T; t++) sum += perStepDamage(EPS, t, T);
+    expect(sum).toBeCloseTo(damageTriangleArea(EPS, T) + 0.5 * EPS * T, 10);
+  });
+});
+
+describe('daggerStripArea', () => {
+  it('equals daggerRegret (T steps × ε per step)', () => {
+    for (const T of [10, 30, 60, 100]) {
+      expect(daggerStripArea(EPS, T)).toBeCloseTo(daggerRegret(EPS, T), 12);
+    }
+  });
+
+  it('pins the widget defaults ε=0.06, T=60 → 3.6', () => {
+    expect(daggerStripArea(0.06, 60)).toBeCloseTo(3.6, 10);
   });
 });

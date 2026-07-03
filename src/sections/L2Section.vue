@@ -34,6 +34,11 @@
     <p>$$\min_{u_0,\dots,u_{T-1}} \sum_{t=0}^{T-1} c(x_t, u_t) \quad \text{s.t.}\quad x_{t+1} = f(x_t, u_t)$$</p>
     <p>The crown-jewel solvable case is the <strong>Linear Quadratic Regulator</strong>: linear dynamics \(x_{t+1} = A x_t + B u_t\), quadratic cost \(c = x^\top Q x + u^\top R u\) (\(Q\): how much you hate state error; \(R\): how much you hate effort). Solving backward in time via dynamic programming, the optimal cost-to-go stays quadratic: \(V_t(x) = x^\top P_t x\), with \(P_t \succeq 0\) (a cost-to-go is never negative) given by the <strong>Riccati recursion</strong>. Why quadratic forever? Plug a quadratic \(V\) into the Bellman backup — linear dynamics, quadratic cost, minimize over \(u\) — and out comes a function still quadratic in \(x\); that closure is what makes LQR exactly solvable. And that minimization is just calculus on a quadratic: set the \(u\)-gradient of the backup to zero and solve the linear system, which is where \(K_t\)'s solve-shaped \((R + B^\top P_{t+1} B)^{-1}\) comes from. The optimal control is <em>linear state feedback</em>:</p>
     <p>$$u_t = -K_t\, x_t, \qquad K_t = (R + B^\top P_{t+1} B)^{-1} B^\top P_{t+1} A$$</p>
+
+    <h4>Watch the optimizer choose the gains you hand-tuned</h4>
+    <p>In the PID lab you tuned three knobs by feel — and every setting you found was a compromise you had to discover by breaking things. Now state one number instead: how much you hate error versus effort, the ratio \(q/r\) — and watch the gains choose themselves. Below, the Riccati recursion turns that single preference into the feedback gains for the same mass you just wrestled with, and \(u = -Kx\) does the rest. Slide the ratio and watch the tradeoff move: cheap effort buys hard, torque-hungry convergence; expensive effort buys a lazy, gentle glide that spends almost nothing. Then try to make it ring unstably. You can't — there are no knobs left to get wrong.</p>
+    <LqrWidget />
+
     <p>Three lessons to carry forward. (1) <strong>Cost-to-go is a value function</strong> — LQR's \(V_t(x)\) is the exact ancestor of RL's \(V(s)\), and the backward Riccati sweep is Bellman recursion in closed form. (2) Nonlinear systems are handled by iteratively linearizing around a trajectory (iLQR) or re-solving a short horizon every step (<strong>MPC</strong>, model-predictive control — plan, execute one step, replan). (3) All of it presumes \(f\) is known. <em>Unknown or unmodelable \(f\) is the door RL walks through.</em></p>
 
     <h3><span class="knum">2.3</span>The MDP: optimal control meets probability</h3>
@@ -104,6 +109,7 @@ import Quiz from '../components/Quiz.vue';
 import CompleteBar from '../components/CompleteBar.vue';
 import GridWidget from '../widgets/GridWidget.vue';
 import PidWidget from '../widgets/PidWidget.vue';
+import LqrWidget from '../widgets/LqrWidget.vue';
 import { renderMath } from '../composables/useKaTeX.js';
 import { applyXref } from '../composables/useXref.js';
 

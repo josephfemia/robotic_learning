@@ -33,6 +33,11 @@
     <p>trained on a sequential ELBO (written below as the loss to minimize) — exactly your VAE machinery, unrolled through time:</p>
     <p>$$\mathcal{L} = \sum_t \underbrace{-\log p_\phi(o_t\mid h_t,z_t) - \log p_\phi(r_t\mid h_t,z_t)}_{\text{reconstruct}} \;+\; \beta\,\underbrace{\mathrm{KL}\big(q_\phi(z_t\mid h_t,o_t)\,\|\,p_\phi(z_t\mid h_t)\big)}_{\text{make the prior predict}}$$</p>
     <p class="recap-box"><b>IN WORDS</b> &nbsp;learn a compact latent that (a) can reconstruct what the robot saw and the reward it got, and (b) can be <em>predicted one step ahead from the latent alone</em>. The KL term is the engine: it forces the dynamics model to anticipate the next latent without peeking at the next image — turning the prior into a genuine <em>predictor</em>, not just a filter.</p>
+
+    <h4>Watch the hand-off: filter, then dream</h4>
+    <p>What actually changes inside the model at the moment it stops observing and starts imagining? Below, a hidden state meanders (the dim line) while a belief tracks it. Left of the boundary the posterior is in charge: an observation tick arrives every step, and the uncertainty band snaps tight after each one. Right of the boundary the ticks stop and the prior is on its own — prediction only, nothing to correct against — so the band balloons and the mean drifts. <strong>Drag the boundary</strong> to move the hand-off, and <strong>toggle the prior</strong> to see what the KL term buys: an untrained prior blows up the moment the data disappears; a KL-trained one degrades gracefully enough to be worth dreaming in.</p>
+    <FilterDreamWidget />
+
     <p>Then the signature move: <strong>train the policy entirely inside the model.</strong> Freeze a batch of real states as starting points; let the policy act in latent space; roll the RSSM forward (no decoder, no simulator, thousands of parallel dreams on one GPU); train an actor-critic (L5's machinery!) on these imagined trajectories — with one upgrade unavailable in the real world: because the entire rollout is differentiable, value gradients can flow <em>backward through the dynamics</em> into the policy. Real experience updates the world model; imagination trains the behavior. DreamerV3 made this robust enough that <em>one fixed configuration</em> spans Atari, control suites, and Minecraft (collecting diamonds from scratch) — the robustness tricks (symlog value transforms, two-hot critic targets, KL free bits) are worth knowing exist, if not memorizing — and the framing to keep is that these tricks <em>are</em> the contribution, not footnotes: naive world-model RL is brittle across wildly different reward scales and observation statistics, and each trick neutralizes one source of that brittleness. The 2025 scalable-world-models work (below) pushes the same blueprint to video-model scale.</p>
 
     <h4>How far can you trust a dream?</h4>
@@ -81,6 +86,7 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
 import WmWidget from '../widgets/WmWidget.vue';
+import FilterDreamWidget from '../widgets/FilterDreamWidget.vue';
 import Quiz from '../components/Quiz.vue';
 import CompleteBar from '../components/CompleteBar.vue';
 import { renderMath } from '../composables/useKaTeX.js';

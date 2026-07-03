@@ -39,6 +39,10 @@
     <p>Now the plan as equations. "Blur" is the <strong>forward process</strong>: gradually corrupt data \(x_0\) — here an action, or an action chunk — with Gaussian noise over \(K\) steps. The closed form everyone uses (with \(\bar\alpha_k\) the cumulative noise schedule):</p>
     <p>$$q(x_k \mid x_0) = \mathcal N\big(\sqrt{\bar\alpha_k}\, x_0,\; (1-\bar\alpha_k)\, I\big)$$</p>
     <p class="recap-box"><b>IN WORDS</b> &nbsp;the forward process just blends the clean action with noise: at step \(k\), keep a \(\sqrt{\bar\alpha_k}\) fraction of the data and add the rest as Gaussian noise. One closed form jumps straight to any noise level.</p>
+
+    <h4>What the denoiser actually sees</h4>
+    <p>Training never denoises anything. Here is what the network is actually shown at blur level \(k\) — and what it's asked to name. Slide \(k\) and watch Lecture 3's two swerve modes melt into one Gaussian; the arrows on the sampled points are the regression target, and notice whose arrows they are — the <em>noised</em> density's, which is unimodal at high \(k\) even though the data never was.</p>
+    <ForwardWidget />
     <p>And "learn the arrows at every blur level" is one network, \(\varepsilon_\theta\), trained to name the noise that was mixed in — the (simplified) loss is exactly the regression promised above:</p>
     <p>$$\mathcal L = \mathbb E_{x_0, k, \varepsilon\sim\mathcal N(0,I)}\Big[\big\lVert\, \varepsilon - \varepsilon_\theta\big(\sqrt{\bar\alpha_k}x_0 + \sqrt{1-\bar\alpha_k}\,\varepsilon,\; k\big)\big\rVert^2\Big]$$</p>
     <p class="recap-box"><b>IN WORDS</b> &nbsp;training is one regression: show the network a noised action plus the step number \(k\), and ask it to name the noise that was mixed in. Get that right at every level and you've learned the distribution.</p>
@@ -98,6 +102,7 @@
 import { ref, onMounted, nextTick } from 'vue';
 import Quiz from '../components/Quiz.vue';
 import DiffWidget from '../widgets/DiffWidget.vue';
+import ForwardWidget from '../widgets/ForwardWidget.vue';
 import FlowodeWidget from '../widgets/FlowodeWidget.vue';
 import CompleteBar from '../components/CompleteBar.vue';
 import { renderMath } from '../composables/useKaTeX.js';

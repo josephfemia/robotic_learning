@@ -50,6 +50,11 @@
        query expert for labels a* at those states     ← expert corrects
        D ← D ∪ {(s, a*)};  π_{k+1} ← train on D       ← aggregate, refit</pre>
     <div class="figcap">FIG. 3.1 — The learner generates the states; the expert supplies the answers. Distribution mismatch dissolves by construction.</div></div>
+
+    <h4>Watch the funnel tighten, round by round</h4>
+    <p>The loop above says <em>aggregate and refit</em>. Here is what that buys, mechanically: labels land exactly where the learner drifts, and the off-distribution region — where the \(O(\epsilon T^2)\) damage lives — shrinks before your eyes. Round 0 is pure BC: the same divergent funnel you saw in §3.2. Run a round and watch the expert's labels (cyan dots) appear precisely on the drifted states, the covered band swallow them, and the next bundle hug the demo line tighter — the max-drift readout falls geometrically.</p>
+    <DaggerWidget />
+
     <p>Under a no-regret online-learning analysis (each round is an online classification problem on the evolving distribution), DAgger achieves a performance gap <strong>linear</strong> in the horizon, \(O(\epsilon T)\) (up to recoverability constants; its per-round online-learning regret \(\to 0\)) — the best you could hope for. Its practical sin: it needs an expert <em>on call</em> to label arbitrary mid-rollout states, which is expensive and awkward for humans (labeling "what would I have done here?" out of context is hard). Real systems often use softer cousins: human <em>interventions</em> during rollouts (take over when it drifts, log the corrections) — you'll meet this as HG-DAgger-style data collection and again in HIL-SERL (L4 papers).</p>
 
     <h3><span class="knum">3.4</span>Two subtler failure modes</h3>
@@ -104,6 +109,7 @@ import { ref, onMounted, nextTick } from 'vue';
 import Quiz from '../components/Quiz.vue';
 import CompleteBar from '../components/CompleteBar.vue';
 import DriftWidget from '../widgets/DriftWidget.vue';
+import DaggerWidget from '../widgets/DaggerWidget.vue';
 import CurveWidget from '../widgets/CurveWidget.vue';
 import MeanWidget from '../widgets/MeanWidget.vue';
 import CausalWidget from '../widgets/CausalWidget.vue';

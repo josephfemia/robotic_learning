@@ -34,6 +34,11 @@
     <h3><span class="knum">11.2</span>The open-problem ledger</h3>
     <p><strong>Data.</strong> Still the binding constraint. The contenders: teleoperation farms (high quality, linear cost), simulation (infinite but gapped — L5), human video (infinite, embodiment-mismatched — L7/L8's masking and video-model bets), autonomous experience (the π*0.6 road — RL's return at scale), and synthetic data from world models. Nobody knows the winning portfolio; everyone agrees it's a portfolio.</p>
     <p><strong>Evaluation.</strong> Quietly the field's most serious illness. No ImageNet: real-robot evals are slow, expensive, lab-specific, and statistically underpowered (20 trials per task is common — your actuarial soul should wince at those confidence intervals); simulation benchmarks (CALVIN, SIMPLER) only partially predict reality; cherry-picked demo videos distort perceived progress. Reproducibility and honest uncertainty quantification are open <em>scientific</em> problems, not just logistics.</p>
+
+    <h4>Run the underpowered eval yourself</h4>
+    <p>Can 20 trials per task tell an 80%-success policy from a 90% one? You already know the answer professionally — you'd never set a rate on n=20 — now watch robotics papers ignore it. Below, two policies with <em>known</em> true rates face the field's standard evaluation: rerun it a few times and watch the "winner" flip, then find the n where the confidence intervals actually separate. It is not 20.</p>
+    <EvalWidget />
+
     <p><strong>Reliability and safety.</strong> 80% success demos well; homes need 99.9%+ with graceful failure. The gap between those numbers is where deployment lives: uncertainty estimation, runtime monitors, safe recovery, formal constraints around learned components — thin literatures all, and (as L10 noted) verification in the physical world is intrinsically hard.</p>
     <p><strong>Long horizon, memory, and continual learning.</strong> Hours-long tasks, persistent spatial/semantic memory ("where did I leave the keys"), improving after deployment without forgetting — all early. The most concrete existing answer is weights-free: Voyager's ever-growing skill library (L10) accumulates competence as retrievable code rather than parameters, sidestepping catastrophic forgetting entirely. Whether that move extends from code to sensorimotor skill — continual learning in the weights themselves — is wide open.</p>
     <p><strong>Touch and whole-body dexterity.</strong> Vision dominates the data mix; contact-rich fine manipulation (the hardest 20% of tasks) likely needs tactile sensing at scale, which barely exists in datasets. Recall the Primer's thesis — contact is the single biggest reason manipulation resists classical methods — and the shape of the problem sharpens: the hardest 20% is exactly where the data mix is blindest. Tactile sensors exist; a tactile counterpart to internet-scale video does not, and nobody has shown where one would come from.</p>
@@ -71,6 +76,7 @@
 import { ref, onMounted, nextTick } from 'vue';
 import Quiz from '../components/Quiz.vue';
 import WorldviewWidget from '../widgets/WorldviewWidget.vue';
+import EvalWidget from '../widgets/EvalWidget.vue';
 import CompleteBar from '../components/CompleteBar.vue';
 import { renderMath } from '../composables/useKaTeX.js';
 import { applyXref } from '../composables/useXref.js';

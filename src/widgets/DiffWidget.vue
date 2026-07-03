@@ -11,7 +11,7 @@
 import { onMounted, onUnmounted, ref } from 'vue';
 import Lab from '../components/Lab.vue';
 import R from './rllab.js';
-import { scoreField, noiseSchedule } from '../logic/diffusion.js';
+import { noiseSchedule, denoisingStep, noiseScale, STEP_LR } from '../logic/diffusion.js';
 
 const note =
   'Every grey dot is a random starting point; <strong>Denoise</strong> follows the learned score toward regions of high probability. The punchline that defeats mean-collapse: <em>where a particle lands depends on where it started</em>, so the same model fluidly produces both maneuvers — never their disastrous average. This is exactly why diffusion policies handle multimodal demonstrations that MSE cannot. <span class=&quot;notice&quot;>Caveat: &quot;where it starts decides the mode&quot; is exactly true only for the deterministic probability-flow ODE; the stochastic sampler shown also injects noise each step, so the seed sets the <em>tendency</em>, not a fixed destination.</span>';
@@ -28,8 +28,9 @@ onMounted(() => {
   if (!stage) return;
 
   // Ported verbatim from the diff IIFE (reference lines 2645–2665).
-  // Numeric core (scoreField, noiseSchedule) comes from logic/diffusion.js
-  // (vitest-pinned), identical to the original's inline score() and sched formula.
+  // Numeric core (noiseSchedule, denoisingStep, noiseScale, STEP_LR) comes from
+  // logic/diffusion.js (vitest-pinned), identical to the original's inline
+  // score()/sched/step-size/noise-decay formulas.
   var Wc = 700, Hc = 340;
   var cv = document.createElement('canvas');
   cv.width = Wc; cv.height = Hc;
@@ -88,12 +89,11 @@ onMounted(() => {
 
   function dstep() {
     var sched = noiseSchedule(step);
-    var lr = 0.18;
+    var lr = STEP_LR;
     for (var i = 0; i < pts.length; i++) {
-      var sc = scoreField(pts[i], sched);
-      pts[i].x += lr * sc.sx; pts[i].y += lr * sc.sy;
-      var nz = Math.sqrt(2 * lr) * 0.18 * Math.exp(-step / 8);
-      pts[i].x += nz * R.randn(); pts[i].y += nz * R.randn();
+      var np = denoisingStep(pts[i], sched, lr);
+      var nz = noiseScale(step, lr);
+      pts[i].x = np.x + nz * R.randn(); pts[i].y = np.y + nz * R.randn();
     }
     step++;
     draw();

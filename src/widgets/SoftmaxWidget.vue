@@ -12,13 +12,14 @@ import { onMounted, ref } from 'vue';
 import Lab from '../components/Lab.vue';
 import R from './rllab.js';
 import { softmax, entropy } from '../logic/softmax.js';
-import { tween } from '../composables/useAnimate.js';
 
 // Lab note rendered by v-html; KaTeX is run by the section, so \(...\) works.
 const note =
   'Temperature \\(T\\) scales every logit before the softmax: at \\(T \\to 0\\) ' +
   'the highest-scoring action gets all the probability (greedy / exploit); ' +
   'at large \\(T\\) the distribution flattens toward uniform (explore). ' +
+  'The dashed ghost bars are the <em>fixed</em> logits \\(z_i\\): softmax preserves their ' +
+  'order, and \\(T\\) only amplifies or erases the gaps between them. ' +
   'Entropy \\(H = -\\sum_i p_i \\ln p_i\\) measures how spread out the distribution is — ' +
   'watch it rise as you drag \\(T\\) up.';
 
@@ -43,16 +44,20 @@ onMounted(() => {
 
   const svg = R.SVG(stage, W, H);
 
-  // Keep track of animated bar heights (in SVG units) so we can tween them.
-  let currentHeights = new Array(N).fill(0);
-  let currentEntropy = 0;
-  let temperature    = 1.0;
+  let temperature = 1.0;
 
   // ── Draw helpers ────────────────────────────────────────────────────────
 
   function barX(i) { return x0 + i * barW; }
 
-  /** (Re)render everything from currentHeights and currentEntropy. */
+  // Ghost-bar heights for the FIXED logits (drawn behind the probability
+  // bars): a static linear map of z into the bar area, floored at 10% so the
+  // smallest logit stays visible. Order is preserved — exactly the property
+  // softmax keeps while T amplifies/erases the gaps.
+  const zLo = Math.min(...LOGITS), zHi = Math.max(...LOGITS);
+  const ghostH = LOGITS.map(z => ((z - zLo) / (zHi - zLo) * 0.82 + 0.10) * maxBarH);
+
+  /** (Re)render everything from the current temperature. */
   function render() {
     R.clr(svg);
 
@@ -74,9 +79,17 @@ onMounted(() => {
     // Bars
     const probs = softmax(LOGITS, temperature);
     for (let i = 0; i < N; i++) {
-      const bh  = currentHeights[i];          // animated height
+      const bh  = probs[i] * maxBarH;
       const bx  = barX(i) + 3;
       const bw2 = barW - 6;
+
+      // Ghost logit bar (fixed) — dashed outline behind the probability bar,
+      // so the input mechanism stays visible while T reshapes the output.
+      svg.appendChild(R.E('rect', {
+        x: barX(i) + 1, y: y0 - ghostH[i], width: barW - 2, height: ghostH[i],
+        fill: 'rgba(138,147,163,0.08)', stroke: R.C.dim, 'stroke-width': 1.1,
+        'stroke-dasharray': '4 3', rx: 2,
+      }));
 
       // Bar body
       svg.appendChild(R.E('rect', {
@@ -84,20 +97,28 @@ onMounted(() => {
         fill: R.C.orange, opacity: 0.88, rx: 2,
       }));
 
-      // Probability label above bar (static, from current real probs)
+      // Probability label above bar, on a dark backing pill so it stays
+      // legible when it crosses the ghost bar's dashed outline.
       const prob = probs[i];
+      svg.appendChild(R.E('rect', {
+        x: bx + bw2 / 2 - 16, y: y0 - bh - 15, width: 32, height: 14,
+        rx: 3, fill: 'rgba(15,20,34,0.82)',
+      }));
       svg.appendChild(R.TX(bx + bw2 / 2, y0 - bh - 4, prob.toFixed(2), {
         fill: R.C.orange, size: 10.5, weight: 600, anchor: 'middle', base: 'auto',
       }));
 
-      // Action label below x-axis
+      // Action label below x-axis, with its fixed logit underneath
       svg.appendChild(R.TX(bx + bw2 / 2, y0 + 14, ACTION_LABELS[i], {
         fill: R.C.ink, size: 11, anchor: 'middle', base: 'hanging',
+      }));
+      svg.appendChild(R.TX(bx + bw2 / 2, y0 + 28, 'z = ' + LOGITS[i].toFixed(1), {
+        fill: R.C.dim, size: 9.5, anchor: 'middle', base: 'hanging',
       }));
     }
 
     // Entropy readout (top-right)
-    const hNats = currentEntropy;
+    const hNats = entropy(probs);
     const hMax  = Math.log(N);                // ln(5) ≈ 1.609
     const pct   = ((hNats / hMax) * 100).toFixed(0);
     svg.appendChild(R.TX(W - padR, y1, `H = ${hNats.toFixed(3)} nats  (${pct}% of max)`, {
@@ -113,46 +134,22 @@ onMounted(() => {
     svg.appendChild(yTitle);
   }
 
-  // ── Animation ───────────────────────────────────────────────────────────
-
-  /** Tween from currentHeights to targetHeights over 350 ms. */
-  function animateTo(targetHeights, targetEntropy) {
-    const fromHeights  = [...currentHeights];
-    const fromEntropy  = currentEntropy;
-
-    tween(350, {
-      onStep(e) {
-        for (let i = 0; i < N; i++) {
-          currentHeights[i] = fromHeights[i] + (targetHeights[i] - fromHeights[i]) * e;
-        }
-        currentEntropy = fromEntropy + (targetEntropy - fromEntropy) * e;
-        render();
-      },
-    });
-  }
-
-  /** Recompute target heights from the current temperature and kick off tween. */
-  function update() {
-    const probs = softmax(LOGITS, temperature);
-    const targetHeights  = probs.map(p => p * maxBarH);
-    const targetEntropy  = -probs.reduce((s, p) => (p > 0 ? s + p * Math.log(p) : s), 0);
-    animateTo(targetHeights, targetEntropy);
-  }
-
   // ── Controls ────────────────────────────────────────────────────────────
-
+  // Motion contract: slider drags update INSTANTLY (no tween-on-drag) — the
+  // widget's only control is this continuous slider, so nothing eases here.
   R.slider(ctr, {
     label: 'temperature  T',
     min: 0.05, max: 5, step: 0.05, value: temperature,
     fmt: v => v.toFixed(2),
-    on: v => { temperature = v; update(); },
+    on: v => { temperature = v; render(); },
   });
 
+  R.legend(stage, [
+    [R.C.orange, 'probability p(a) at T'],
+    ['rgba(138,147,163,0.55)', 'fixed logit z (ghost)'],
+  ]);
+
   // ── Initial draw ────────────────────────────────────────────────────────
-  // Render once synchronously at final state, then let tween settle visually.
-  const initProbs  = softmax(LOGITS, temperature);
-  currentHeights   = initProbs.map(p => p * maxBarH);
-  currentEntropy   = -initProbs.reduce((s, p) => (p > 0 ? s + p * Math.log(p) : s), 0);
   render();
 });
 </script>

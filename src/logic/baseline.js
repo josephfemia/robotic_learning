@@ -81,3 +81,33 @@ export function gradientStats(b) {
   v /= gs.length;
   return { gs: gs, mean: m, variance: v };
 }
+
+/**
+ * The mean gradient — CONSTANT in b (unbiasedness, the widget's "needle").
+ *
+ * Because the scores are centered (Σ sᵢ = 0):
+ *   mean(b) = (1/N) Σ (Rᵢ − b) sᵢ = (1/N) Σ Rᵢ sᵢ − (b/N)·0 = (1/N) Σ Rᵢ sᵢ
+ * so the baseline drops out entirely. Evaluated once at b = 0.
+ */
+export var MEAN_GRADIENT = gradientStats(0).mean;
+
+/**
+ * Sample the variance-vs-b curve on a uniform grid of n points over [bMin, bMax].
+ *
+ * The curve is quadratic in b with its minimum at OPTIMAL_BASELINE — the "dip"
+ * the BaseWidget draws. Each point is { b, variance } with variance taken from
+ * gradientStats(b) so the curve and the readouts can never disagree.
+ *
+ * @param {number} bMin - left edge of the baseline range
+ * @param {number} bMax - right edge of the baseline range
+ * @param {number} n    - number of samples (n >= 2)
+ * @returns {{ b: number, variance: number }[]}
+ */
+export function varianceCurve(bMin, bMax, n) {
+  var pts = [];
+  for (var i = 0; i < n; i++) {
+    var b = bMin + (bMax - bMin) * (i / (n - 1));
+    pts.push({ b: b, variance: gradientStats(b).variance });
+  }
+  return pts;
+}

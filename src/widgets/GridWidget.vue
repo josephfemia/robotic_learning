@@ -11,7 +11,7 @@
 import { onMounted, onUnmounted, ref } from 'vue';
 import Lab from '../components/Lab.vue';
 import R from './rllab.js';
-import { ROWS, COLS, WALLS, TERMINALS, STEP_R, ACT, isTerminal, inBounds, nextCell, initV, bellmanSweep, bestAction } from '../logic/gridValueIteration.js';
+import { ROWS, COLS, WALLS, TERMINALS, isTerminal, initV, bellmanSweep, bestAction } from '../logic/gridValueIteration.js';
 
 const note =
   'Cell color = current value estimate (green positive, red negative); cyan arrow = the greedy action it implies. <strong>Step</strong> does one synchronous Bellman sweep; <strong>Run</strong> animates to convergence. Notice the policy is correct near the goal long before distant values settle — and that raising \\(\\gamma\\) lets the goal\'s influence reach farther. <span class=&quot;notice&quot;>Convention: deterministic moves, a per-step living cost, state-rewards with terminals pinned at \\(\\pm1\\) — chosen for a clean, readable backup; the classic Russell–Norvig version adds 80/10/10 slip noise.</span>';

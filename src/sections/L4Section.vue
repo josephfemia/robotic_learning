@@ -69,6 +69,10 @@ for episode in range(50_000):
       <p>Read the update line slowly. <code>target</code> is the Bellman optimality equation with the expectation replaced by the one transition we just experienced, and \(Q^*\) replaced by our current guess (bootstrapping). <code>(1 - done)</code> zeroes the future at terminal states — death is an absorbing state of value 0, exactly your annuity recursion's boundary condition. The <code>+= alpha * (error)</code> is the credibility blend. That's it — no other state, no other math. Every deep value-based method (DQN and descendants) is <em>this loop</em> with the table swapped for a neural network — plus the scaffolding (replay buffer, target network) required to survive that swap, which is precisely what §4.4 explains.</p>
     </div></details>
 
+    <h4>Q-learning crawls where value iteration swept</h4>
+    <p>Same maze as Lecture 2 — but nobody hands you the model now. Value iteration owned \(P(s'|s,a)\), so every sweep updated <em>all</em> states in parallel, visited or not. Q-learning has to earn each update by standing in the cell: values fill in patchily, along the corridors the agent actually walks, and a cell it never enters keeps whatever guess it started with. Drop \(\epsilon\) to zero and rerun: the agent locks onto the first decent corridor it finds, and everything off that corridor freezes — the "every state–action visited infinitely often" condition failing in front of your eyes.</p>
+    <QlearnWidget />
+
     <h4>Why exploration is its own problem</h4>
     <p>Q-learning's convergence guarantee assumes you keep visiting every state-action — but a greedy agent stops exploring the moment it finds something decent, and may never discover the better option two doors down. The cleanest sandbox is a multi-armed bandit: several actions with hidden payoffs, and only your own pulls to learn from. Try the three classic strategies and watch the regret (lost reward vs. always picking the best arm) accumulate.</p>
     <BanditWidget />
@@ -83,6 +87,10 @@ for episode in range(50_000):
       <li><strong>Target network \(\phi^-\)</strong>: compute targets with a frozen, periodically-updated copy. Stops the regression from chasing its own tail; turns a moving-target problem into a sequence of quasi-stationary ones.</li>
     </ul>
     <p>One refinement worth knowing by name: the \(\max\) in the target overestimates values under noise (Jensen-flavored: \(\mathbb E[\max] \ge \max[\mathbb E]\)); taking the max over several noisy Q-estimates systematically selects whichever was luckiest, biasing the target high — and because the next bootstrap target is built from that inflated value, the overestimation feeds forward through training. <strong>Double DQN</strong> decouples action <em>selection</em> (online net) from action <em>evaluation</em> (target net) to debias it.</p>
+
+    <h4>The max doesn't find the best action — it finds the luckiest estimate</h4>
+    <p>That Jensen inequality deserves to be watched, not just believed. Below, every action has <em>exactly</em> the same true value; the only thing separating them is estimation noise. Take the max and you don't sample the truth — you sample the winner of a luck contest, and the target inherits the winner's overshoot every single time. Then flip the Double-DQN switch: select with one noisy estimate, evaluate with an independent one, and luck can no longer vouch for itself.</p>
+    <MaxBiasWidget />
 
     <details class="dive"><summary>Going deeper: a tiny chain where deep Q-learning provably blows up (the deadly triad, concretely)</summary><div class="dive-body">
       <p>Why is the triad "deadly" rather than merely annoying? Picture Baird's counterexample in miniature: a handful of states whose values share an <em>overlapping</em> linear feature representation, trained <em>off-policy</em> with <em>bootstrapped</em> targets — all three legs present. Each update nudges the weights to shrink one state's TD error, but because the features overlap, the same nudge inflates a neighbor's predicted value. That inflated value becomes part of the next bootstrap target, which justifies inflating the weights again, which inflates the neighbor further. With no environment changing and no reward driving it, the value estimates spiral to infinity — the estimator is chasing its own moving reflection.</p>
@@ -134,6 +142,8 @@ import { applyXref } from '../composables/useXref.js';
 import MctdWidget from '../widgets/MctdWidget.vue';
 import BanditWidget from '../widgets/BanditWidget.vue';
 import TriadWidget from '../widgets/TriadWidget.vue';
+import QlearnWidget from '../widgets/QlearnWidget.vue';
+import MaxBiasWidget from '../widgets/MaxBiasWidget.vue';
 
 defineEmits(['navigate']);
 

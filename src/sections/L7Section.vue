@@ -62,6 +62,10 @@
     <h3><span class="knum">7.5</span>Tokenization: the load-bearing design decision</h3>
     <p>Once everything is a token, the question "what is a token?" becomes the architecture. For <em>observations</em>: patch embeddings (ViT-style) vs. learned visual tokens vs. pretrained VLM features. For <em>actions</em>: per-dimension binning (256 bins — RT-1/RT-2's choice; simple, plays perfectly with language-model vocabularies, but quantizes precision and factorizes dimensions) vs. <em>continuous heads</em> bolted onto the transformer trunk — a diffusion or flow head generating chunks (Octo, π0; precise, multimodal, slower to sample). This binning-vs-generative-head tension is the central architectural fault line running through Lecture 9; you now have the tools to understand both sides.</p>
 
+    <h4>What 256 bins per dimension actually costs</h4>
+    <p>When actions become tokens, what exactly is lost? Two things, and the lab below prices both. The cloud is a demonstrator's actions in two of the arm's dimensions — correlated, because reaching further means opening the gripper wider, so the data lives on a diagonal ridge. Coarsen the bins and every action snaps to its nearest grid center: the first price, precision, read directly off the quantization-error meter. Then switch the head from joint to the independent per-dimension softmax that binning actually ships with (a joint softmax over all \(k^2\) grid cells doesn't scale, so each dimension gets its own): the model can now only represent a product of marginals, and the ridge smears into a checkerboard cross — real probability mass on reach–gripper combinations no demonstrator ever produced.</p>
+    <TokenizeWidget />
+
     <div class="bridge">
       <div class="bridge-title">Bridge · From your background</div>
       <div class="bridge-row"><div class="from"><b>Next-token LM training</b> (cross-entropy over a vocabulary)</div><div class="arrow">→</div><div class="to"><b>Everything in this lecture</b> — same loss; the vocabulary now includes motor commands</div></div>
@@ -97,6 +101,7 @@ import { ref, onMounted, nextTick } from 'vue';
 import AttnWidget from '../widgets/AttnWidget.vue';
 import DtWidget from '../widgets/DtWidget.vue';
 import ChunkWidget from '../widgets/ChunkWidget.vue';
+import TokenizeWidget from '../widgets/TokenizeWidget.vue';
 import Quiz from '../components/Quiz.vue';
 import CompleteBar from '../components/CompleteBar.vue';
 import { renderMath } from '../composables/useKaTeX.js';

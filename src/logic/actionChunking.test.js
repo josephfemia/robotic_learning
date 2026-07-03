@@ -156,6 +156,29 @@ describe('buildCommitted — with temporal ensembling', () => {
   });
 });
 
+describe('buildCommitted — stride vs chunk coverage (the A5 clamp invariant)', () => {
+  it('with stride ≤ chunk, the committed path has no interior gaps', () => {
+    for (const [chunk, stride] of [[4, 4], [12, 4], [6, 3], [20, 12]]) {
+      for (const ensemble of [false, true]) {
+        const c = buildCommitted(20, T, chunk, stride, ensemble);
+        let last = -1;
+        for (let i = 0; i < T; i++) if (c[i] !== undefined) last = i;
+        expect(last).toBeGreaterThanOrEqual(0);
+        for (let i = 0; i <= last; i++) expect(c[i]).not.toBeUndefined();
+      }
+    }
+  });
+
+  it('stride > chunk leaves unplanned gaps — why the widget clamps stride ≤ chunk', () => {
+    // chunk=4, stride=12: plans at s=0,12,24 each cover only 4 steps.
+    const c = buildCommitted(24, T, 4, 12, false);
+    expect(c[3]).not.toBeUndefined();   // covered by the s=0 plan
+    expect(c[6]).toBeUndefined();       // gap: after chunk end (4), before next plan (12)
+    expect(c[11]).toBeUndefined();      // still in the gap
+    expect(c[12]).not.toBeUndefined();  // covered by the s=12 plan
+  });
+});
+
 describe('lastPlanStep', () => {
   it('returns 0 at t=0', () => {
     expect(lastPlanStep(0, STRIDE, T)).toBe(0);

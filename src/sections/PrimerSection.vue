@@ -15,21 +15,35 @@
     <h3><span class="knum">PART A</span>What a robot actually is</h3>
     <p>Strip away the science fiction. A robot is <strong>sensors + actuators + a computer, wired into a feedback loop with the physical world</strong>. The computer reads sensors, decides, commands actuators, and the world responds — many times per second, forever. Everything in this course is about what runs inside that loop.</p>
 
-    <div class="figure"><pre>
-              ┌──────────────────────────────┐
-              │           WORLD              │
-              │  (objects, physics, people)  │
-              └───────┬──────────────▲───────┘
-                      │              │
-                 observations     actions
-              (camera, joints,  (motor torques,
-               force, touch)     target poses)
-                      │              │
-              ┌───────▼──────────────┴───────┐
-              │      POLICY  π(a|o)          │
-              │  the thing this course       │
-              │  teaches you how to LEARN    │
-              └──────────────────────────────┘</pre>
+    <div class="figure">
+    <svg viewBox="0 0 640 332" role="img"
+         aria-label="The perception–action loop: observations flow from the world down to the policy; actions flow from the policy back up to the world."
+         style="display:block;width:100%;max-width:560px;margin:0 auto;font-family:var(--sans)">
+      <defs>
+        <marker id="figp1-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#5B6572" />
+        </marker>
+      </defs>
+      <!-- pulse dot: drawn first so the boxes occlude it while it crosses them -->
+      <circle ref="loopDot" cx="240" cy="50" r="5" fill="#E8590C" />
+      <!-- observation arrow: world → policy -->
+      <line x1="240" y1="82" x2="240" y2="242" stroke="#5B6572" stroke-width="1.6" marker-end="url(#figp1-arrow)" />
+      <!-- action arrow: policy → world -->
+      <line x1="400" y1="248" x2="400" y2="88" stroke="#5B6572" stroke-width="1.6" marker-end="url(#figp1-arrow)" />
+      <!-- WORLD node -->
+      <rect x="170" y="18" width="300" height="64" rx="10" fill="#F0F3F8" stroke="#D9DFE7" stroke-width="1.5" />
+      <text x="320" y="44" text-anchor="middle" font-size="15" font-weight="700" letter-spacing="1.5" fill="#161B22">WORLD</text>
+      <text x="320" y="66" text-anchor="middle" font-size="11.5" fill="#5B6572">(objects, physics, people)</text>
+      <!-- POLICY node -->
+      <rect x="170" y="248" width="300" height="64" rx="10" fill="#FFFFFF" stroke="#2742CC" stroke-width="1.5" />
+      <text x="320" y="274" text-anchor="middle" font-size="15" font-weight="700" fill="#2742CC">POLICY  π(a|o)</text>
+      <text x="320" y="296" text-anchor="middle" font-size="11" fill="#5B6572">the thing this course teaches you how to LEARN</text>
+      <!-- edge labels -->
+      <text x="224" y="152" text-anchor="end" font-size="12.5" font-weight="600" fill="#161B22">observation oₜ</text>
+      <text x="224" y="170" text-anchor="end" font-size="11" fill="#5B6572">camera, joints, force, touch</text>
+      <text x="416" y="152" font-size="12.5" font-weight="600" fill="#161B22">action aₜ</text>
+      <text x="416" y="170" font-size="11" fill="#5B6572">motor torques, target poses</text>
+    </svg>
     <div class="figcap">FIG. P1 — The perception–action loop. Classical robotics fills the box with hand-derived models; robot learning fills it with a trained neural network.</div></div>
 
     <h4>State: where the robot is, in numbers</h4>
@@ -135,7 +149,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import DiscWidget from '../widgets/DiscWidget.vue';
 import ArmWidget from '../widgets/ArmWidget.vue';
 import DynamicsWidget from '../widgets/DynamicsWidget.vue';
@@ -145,10 +159,29 @@ import Quiz from '../components/Quiz.vue';
 import CompleteBar from '../components/CompleteBar.vue';
 import { renderMath } from '../composables/useKaTeX.js';
 import { applyXref } from '../composables/useXref.js';
+import { prefersReducedMotion } from '../composables/useAnimate.js';
 
 defineEmits(['navigate']);
 
 const rootEl = ref(null);
+const loopDot = ref(null);
+let loopRaf = 0;
+
+// FIG P1 pulse: point at fraction p ∈ [0,1) along the rectangular loop
+// (down the observation edge, across, up the action edge, back across).
+// Pure math — no getTotalLength, so it's safe while the section is hidden.
+function loopPoint(p) {
+  const x0 = 240, x1 = 400, y0 = 50, y1 = 280;
+  const w = x1 - x0, h = y1 - y0, P = 2 * (w + h);
+  let d = p * P;
+  if (d < h) return { x: x0, y: y0 + d };
+  d -= h;
+  if (d < w) return { x: x0 + d, y: y1 };
+  d -= w;
+  if (d < h) return { x: x1, y: y1 - d };
+  d -= h;
+  return { x: x1 - d, y: y0 };
+}
 
 onMounted(async () => {
   await nextTick();
@@ -156,5 +189,19 @@ onMounted(async () => {
     renderMath(rootEl.value);
     applyXref(rootEl.value);
   }
+  // One slow pulse circling FIG P1's loop; static under prefers-reduced-motion
+  // (the dot rests occluded beneath the WORLD box).
+  if (loopDot.value && !prefersReducedMotion()) {
+    const PERIOD = 9000;
+    const frame = (ts) => {
+      const pt = loopPoint((ts % PERIOD) / PERIOD);
+      loopDot.value.setAttribute('cx', pt.x);
+      loopDot.value.setAttribute('cy', pt.y);
+      loopRaf = requestAnimationFrame(frame);
+    };
+    loopRaf = requestAnimationFrame(frame);
+  }
 });
+
+onUnmounted(() => cancelAnimationFrame(loopRaf));
 </script>

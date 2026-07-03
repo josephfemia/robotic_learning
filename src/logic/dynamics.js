@@ -136,3 +136,50 @@ export function inverseDynamics(q, qd, qdd) {
     M[1][0] * qdd[0] + M[1][1] * qdd[1] + C[1] + gv[1],
   ];
 }
+
+/**
+ * Per-term torque breakdown at a given state — the three contributions the
+ * DynamicsWidget draws as bars, plus their sum (= inverseDynamics).
+ *
+ *   inertia  = M(q)·q̈
+ *   coriolis = C(q,q̇)·q̇
+ *   gravity  = g(q)
+ *   total    = inertia + coriolis + gravity  (≡ τ)
+ *
+ * @param {[number, number]} q    - joint angles [q1, q2] in radians
+ * @param {[number, number]} qd   - joint velocities [q̇1, q̇2] in rad/s
+ * @param {[number, number]} qdd  - joint accelerations [q̈1, q̈2] in rad/s²
+ * @returns {{inertia:[number,number], coriolis:[number,number],
+ *            gravity:[number,number], total:[number,number]}}
+ */
+export function torqueComponents(q, qd, qdd) {
+  const M = massMatrix(q);
+  const inertia = [
+    M[0][0] * qdd[0] + M[0][1] * qdd[1],
+    M[1][0] * qdd[0] + M[1][1] * qdd[1],
+  ];
+  const cor = coriolis(q, qd);
+  const grav = gravity(q);
+  return {
+    inertia,
+    coriolis: cor,
+    gravity: grav,
+    total: [inertia[0] + cor[0] + grav[0], inertia[1] + cor[1] + grav[1]],
+  };
+}
+
+/**
+ * Shared full-scale for the widget's torque bars (N·m).
+ *
+ * Every bar in the DynamicsWidget maps |value| / TORQUE_DISPLAY_MAX onto the
+ * same pixel half-width, so equal torques always render at equal lengths.
+ *
+ * Chosen from the reachable extremes over the widget's slider range
+ * (q1 ∈ ±160°, q2 ∈ ±140°, q̇ ∈ ±4 rad/s, fixed test q̈ = [1, 0.5]):
+ *   max |gravity|  = (m1·lc1 + m2·L1 + m2·lc2)·g = 1.2·9.81 = 11.772  (arm horizontal)
+ *   max |Coriolis| = 3·beta·q̇²_max = 3·0.2·16   = 9.6
+ *   max |inertia|  = (alpha + 2β) + 0.5·(delta + β) ≈ 1.493
+ * → smallest round number covering every component is 12.
+ * (Pinned by the grid-scan test in dynamics.test.js.)
+ */
+export const TORQUE_DISPLAY_MAX = 12;

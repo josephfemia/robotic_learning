@@ -12,6 +12,7 @@ import { onMounted, ref } from 'vue';
 import Lab from '../components/Lab.vue';
 import R from './rllab.js';
 import { tween } from '../composables/useAnimate.js';
+import { simulateRollout } from '../logic/driftFunnel.js';
 
 const note =
   'The cyan dashed line is the expert\'s path. Each orange line is one rollout of the cloned policy: once a small error knocks it off-distribution, there\'s no correcting signal, so it walks away. Raise \\(\\epsilon\\) and the funnel widens fast.';
@@ -23,14 +24,16 @@ onMounted(() => {
   const ctr = lab.value.ctrl;
   if (!stage) return;
 
-  // Ported VERBATIM from the drift IIFE (reference lines 2470–2483).
+  // Layout from the drift IIFE (reference lines 2470–2483); the walk itself
+  // comes from the vitest-pinned core (rollouts start ON the demo line at t=0).
   var W=700,H=300,padL=18,padR=18,NRoll=26,STEPS=64,eps=0.06;var svg=R.SVG(stage,W,H);
   var x0=padL,x1=W-padR,ymid=H/2,maxA=H/2-22,dx=(x1-x0)/STEPS;
   // Sample the rollout bundle ONCE per (re)sample and cache the point-strings, so
   // animating opacity fades fixed lines in rather than re-jittering them each frame.
   var rolls=[];
-  function sampleRolls(){rolls=[];for(var n=0;n<NRoll;n++){var d=0,off=false,pts='';
-    for(var t=0;t<=STEPS;t++){if(!off){if(Math.random()<eps){off=true;d+=(Math.random()<0.5?-1:1)*4;}}else{d+=(Math.random()-0.5)*4+(d>0?0.6:-0.6);}d=R.clamp(d,-maxA,maxA);pts+=(t?' ':'')+(x0+t*dx).toFixed(1)+','+(ymid+d).toFixed(1);}
+  function sampleRolls(){rolls=[];for(var n=0;n<NRoll;n++){
+    var d=simulateRollout(eps,STEPS,maxA),pts='';
+    for(var t=0;t<=STEPS;t++){pts+=(t?' ':'')+(x0+t*dx).toFixed(1)+','+(ymid+d[t]).toFixed(1);}
     rolls.push(pts);}}
   sampleRolls();
   function draw(rollAlpha){

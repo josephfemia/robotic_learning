@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { latentDivergence, pixelDivergence, trustworthyHorizon } from './wm.js';
+import {
+  latentDivergence,
+  pixelDivergence,
+  trustworthyHorizon,
+  mulberry32,
+  randnFrom,
+  rolloutFan,
+} from './wm.js';
 
 // Default eps from the original IIFE: 0.05
 const EPS = 0.05;
@@ -83,5 +90,117 @@ describe('trustworthyHorizon', () => {
 
   it('increases as eps decreases (more trustworthy at lower error)', () => {
     expect(trustworthyHorizon(0.02, 50)).toBeGreaterThan(trustworthyHorizon(0.05, 50));
+  });
+});
+
+describe('mulberry32', () => {
+  it('is deterministic: same seed → same sequence', () => {
+    const a = mulberry32(9);
+    const b = mulberry32(9);
+    for (let i = 0; i < 10; i++) expect(a()).toBe(b());
+  });
+
+  it('pinned first value for seed 9', () => {
+    expect(mulberry32(9)()).toBeCloseTo(0.19872892, 7);
+  });
+
+  it('different seeds give different sequences', () => {
+    expect(mulberry32(9)()).not.toBeCloseTo(mulberry32(10)(), 7);
+  });
+
+  it('produces values in [0, 1)', () => {
+    const rng = mulberry32(123);
+    for (let i = 0; i < 1000; i++) {
+      const v = rng();
+      expect(v).toBeGreaterThanOrEqual(0);
+      expect(v).toBeLessThan(1);
+    }
+  });
+});
+
+describe('randnFrom', () => {
+  it('is deterministic given a seeded rng', () => {
+    const a = randnFrom(mulberry32(5));
+    const b = randnFrom(mulberry32(5));
+    expect(a).toBe(b);
+  });
+
+  it('is approximately standard normal over 2000 draws (seed 123)', () => {
+    const rng = mulberry32(123);
+    let s = 0, s2 = 0;
+    const N = 2000;
+    for (let i = 0; i < N; i++) {
+      const x = randnFrom(rng);
+      s += x;
+      s2 += x * x;
+    }
+    const mean = s / N;
+    const std = Math.sqrt(s2 / N - mean * mean);
+    expect(Math.abs(mean)).toBeLessThan(0.1);
+    expect(std).toBeGreaterThan(0.9);
+    expect(std).toBeLessThan(1.1);
+  });
+});
+
+describe('rolloutFan', () => {
+  const EPS = 0.05;
+
+  it('returns n trajectories of length Hmax+1, each starting at 0', () => {
+    const fan = rolloutFan(7, 20, EPS, 'latent', 1);
+    expect(fan).toHaveLength(7);
+    for (const traj of fan) {
+      expect(traj).toHaveLength(21);
+      expect(traj[0]).toBe(0);
+    }
+  });
+
+  it('is deterministic: same seed reproduces the same fan', () => {
+    const a = rolloutFan(3, 15, EPS, 'pixel', 42);
+    const b = rolloutFan(3, 15, EPS, 'pixel', 42);
+    expect(a).toEqual(b);
+  });
+
+  it('different seeds give different fans', () => {
+    const a = rolloutFan(1, 10, EPS, 'latent', 1)[0];
+    const b = rolloutFan(1, 10, EPS, 'latent', 2)[0];
+    expect(a[10]).not.toBeCloseTo(b[10], 10);
+  });
+
+  it('pinned latent trajectory (Hmax=5, eps=0.05, seed=42)', () => {
+    const t = rolloutFan(1, 5, 0.05, 'latent', 42)[0];
+    const expected = [0, -0.046633, -0.068943, -0.256268, -0.388611, -0.455728];
+    for (let h = 0; h <= 5; h++) expect(t[h]).toBeCloseTo(expected[h], 5);
+  });
+
+  it('pinned pixel trajectory (Hmax=5, eps=0.05, seed=42)', () => {
+    const t = rolloutFan(1, 5, 0.05, 'pixel', 42)[0];
+    const expected = [0, -0.015804, -0.026651, -0.139009, -0.230537, -0.282165];
+    for (let h = 0; h <= 5; h++) expect(t[h]).toBeCloseTo(expected[h], 5);
+  });
+
+  it('RMS spread at horizon h matches the latent divergence envelope', () => {
+    const n = 600, H = 40;
+    const fan = rolloutFan(n, H, EPS, 'latent', 1);
+    const rms = Math.sqrt(fan.reduce((s, t) => s + t[H] * t[H], 0) / n);
+    const env = latentDivergence(H, EPS);
+    expect(rms / env).toBeGreaterThan(0.88);
+    expect(rms / env).toBeLessThan(1.12);
+  });
+
+  it('RMS spread at horizon h matches the pixel divergence envelope', () => {
+    const n = 600, H = 40;
+    const fan = rolloutFan(n, H, EPS, 'pixel', 1);
+    const rms = Math.sqrt(fan.reduce((s, t) => s + t[H] * t[H], 0) / n);
+    const env = pixelDivergence(H, EPS);
+    expect(rms / env).toBeGreaterThan(0.88);
+    expect(rms / env).toBeLessThan(1.12);
+  });
+
+  it('pixel fan is wider than latent fan at the same horizon (mean |offset|)', () => {
+    const n = 300, H = 30;
+    const meanAbs = (fan) => fan.reduce((s, t) => s + Math.abs(t[H]), 0) / n;
+    const lat = meanAbs(rolloutFan(n, H, EPS, 'latent', 1));
+    const pix = meanAbs(rolloutFan(n, H, EPS, 'pixel', 1));
+    expect(pix).toBeGreaterThan(lat);
   });
 });

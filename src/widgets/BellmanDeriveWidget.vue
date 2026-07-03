@@ -11,7 +11,7 @@
 import { onMounted, onUnmounted, ref } from 'vue';
 import Lab from '../components/Lab.vue';
 import R from './rllab.js';
-import { bellmanBackup, bellmanSweep, solveBellman } from '../logic/bellman.js';
+import { bellmanBackup, bellmanSweep } from '../logic/bellman.js';
 import { tween, easings, focusPulse, prefersReducedMotion } from '../composables/useAnimate.js';
 
 // ---------------------------------------------------------------------------

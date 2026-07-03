@@ -2,8 +2,13 @@
  * decisionTransformer.js — pure numeric core for the Decision Transformer
  * return-conditioning widget (W: dt, L7).
  *
- * Ported VERBATIM from the dt IIFE in robot-learning-companion.html
- * lines 2772–2795.
+ * achievedReturn / isInDistribution / MAX_DATA were ported VERBATIM from the
+ * dt IIFE in robot-learning-companion.html lines 2772–2795.
+ *
+ * Phase-3 (F5) addition: datasetReturns — a seeded, pinned sample of the
+ * training dataset's per-trajectory returns, so "the data's support" is shown
+ * as actual dots that thin out and stop exactly at MAX_DATA (the best return
+ * in the dataset), instead of only a color change on the curve.
  *
  * Core invariant (the widget's educational point):
  *   - For prompted return-to-go r <= maxData: achieved ≈ r (the model delivers
@@ -56,4 +61,44 @@ export function achievedReturn(r, maxData) {
 export function isInDistribution(r, maxData) {
   if (maxData === undefined) maxData = MAX_DATA;
   return r <= maxData;
+}
+
+/** Tiny deterministic PRNG (mulberry32) — private; keeps the dataset pinned. */
+function mulberry32(seed) {
+  var a = seed >>> 0;
+  return function () {
+    a = (a + 0x6d2b79f5) >>> 0;
+    var t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/**
+ * datasetReturns — the seeded sample of per-trajectory returns present in the
+ * training dataset.
+ *
+ * Shape of the sample: r = maxData · u^1.35 with u ~ U[0,1). The exponent > 1
+ * skews mass toward low/mid returns so the dots visibly THIN OUT as they
+ * approach the best return — good trajectories are rare — and one entry is
+ * pinned to exactly maxData (the best trajectory defines the support's edge,
+ * where the widget's orange dashed line stands).
+ *
+ * Deterministic: same (n, maxData, seed) → same sorted array.
+ *
+ * @param {number} n       - number of trajectories (default 48)
+ * @param {number} maxData - best return in dataset (default MAX_DATA)
+ * @param {number} seed    - PRNG seed (default 7)
+ * @returns {number[]} n returns, sorted ascending, all in [0, maxData], max === maxData
+ */
+export function datasetReturns(n, maxData, seed) {
+  if (n === undefined) n = 48;
+  if (maxData === undefined) maxData = MAX_DATA;
+  if (seed === undefined) seed = 7;
+  var rng = mulberry32(seed);
+  var out = [maxData];
+  for (var i = 1; i < n; i++) out.push(maxData * Math.pow(rng(), 1.35));
+  out.sort(function (a, b) { return a - b; });
+  return out;
 }
