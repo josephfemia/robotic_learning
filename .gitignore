@@ -26,3 +26,10 @@ hero-*.png
 ref-*.json
 new-*.json
 *-sections*.json
+
+# Working notes / planning docs (not part of the shipped project)
+docs/
+
+# Local agent/editor scratch
+.claude/
+CLAUDE.md
